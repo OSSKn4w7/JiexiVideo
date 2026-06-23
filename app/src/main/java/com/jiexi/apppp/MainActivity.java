@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
@@ -25,6 +27,10 @@ import com.jiexi.apppp.ui.DetailActivity;
 import com.jiexi.apppp.ui.DownloadListActivity;
 import com.jiexi.apppp.ui.LoginActivity;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 public class MainActivity extends Activity {
 
     private static final int TAB_BILIBILI = 0;
@@ -42,6 +48,16 @@ public class MainActivity extends Activity {
     private LinearLayout mLoginStatusLayout;
     private ImageView mAvatarImage;
     private TextView mLoginStatusText;
+
+    // User info card
+    private LinearLayout mUserInfoCard;
+    private ImageView mUserAvatar;
+    private TextView mUserNameText;
+    private TextView mUserVipText;
+    private TextView mUserMidText;
+    private TextView mUserCookieInfo;
+    private Button mBtnLogout;
+    private LinearLayout mHintCard;
 
     private CookieManager mCookieManager;
     private boolean mIsLoggedIn;
@@ -86,6 +102,31 @@ public class MainActivity extends Activity {
         mLoginStatusLayout = (LinearLayout) findViewById(R.id.loginStatusLayout);
         mAvatarImage = (ImageView) findViewById(R.id.avatarImage);
         mLoginStatusText = (TextView) findViewById(R.id.loginStatusText);
+
+        mUserInfoCard = (LinearLayout) findViewById(R.id.userInfoCard);
+        mUserAvatar = (ImageView) findViewById(R.id.userAvatar);
+        mUserNameText = (TextView) findViewById(R.id.userNameText);
+        mUserVipText = (TextView) findViewById(R.id.userVipText);
+        mUserMidText = (TextView) findViewById(R.id.userMidText);
+        mUserCookieInfo = (TextView) findViewById(R.id.userCookieInfo);
+        mBtnLogout = (Button) findViewById(R.id.btnLogout);
+        mHintCard = (LinearLayout) findViewById(R.id.hintCard);
+
+        mBtnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCookieManager.clearCookie();
+                mIsLoggedIn = false;
+                mIsVip = false;
+                mUserInfoCard.setVisibility(View.GONE);
+                mHintCard.setVisibility(View.VISIBLE);
+                mLoginStatusText.setText("未登录 (点击登录)");
+                mLoginStatusText.setTextColor(0xffaaaaaa);
+                mAvatarImage.setImageResource(R.drawable.ic_launcher);
+                Toast.makeText(MainActivity.this, "已退出登录", Toast.LENGTH_SHORT).show();
+                Logger.i("Main", "用户退出登录");
+            }
+        });
 
         mTabBilibili.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,16 +214,32 @@ public class MainActivity extends Activity {
                             if (status.isLoggedIn) {
                                 mLoginStatusText.setText(status.uname);
                                 mLoginStatusText.setTextColor(0xff88c0ff);
+                                updateUserCard(status);
                                 if (hasCookie) {
                                     mCookieManager.setVip(status.isVip);
-                                }
+    }
+
+    private void showError(final String msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mLoadingLayout.setVisibility(View.GONE);
+                mBtnParse.setEnabled(true);
+                mErrorText.setText(msg);
+                mErrorText.setVisibility(View.VISIBLE);
+            }
+        });
+    }
                             } else if (hasCookie) {
                                 mLoginStatusText.setText("Cookie 已导入");
-                                mLoginStatusText.setTextColor(0xff88c0ff);
+                                mLoginStatusText.setTextColor(0xffffcc00);
                                 mIsLoggedIn = true;
+                                showCookieCard(status);
                             } else {
                                 mLoginStatusText.setText("未登录 (点击登录)");
                                 mLoginStatusText.setTextColor(0xffaaaaaa);
+                                mUserInfoCard.setVisibility(View.GONE);
+                                mHintCard.setVisibility(View.VISIBLE);
                             }
                         }
                     });
@@ -192,8 +249,9 @@ public class MainActivity extends Activity {
                         public void run() {
                             if (mCookieManager.hasCookie()) {
                                 mLoginStatusText.setText("Cookie 已导入");
-                                mLoginStatusText.setTextColor(0xff88c0ff);
+                                mLoginStatusText.setTextColor(0xffffcc00);
                                 mIsLoggedIn = true;
+                                showCookieCard(null);
                             }
                         }
                     });
@@ -278,6 +336,77 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    private void updateUserCard(final LoginStatus status) {
+        mUserInfoCard.setVisibility(View.VISIBLE);
+        mHintCard.setVisibility(View.GONE);
+
+        mUserNameText.setText(status.uname);
+        mUserNameText.setTextColor(0xffffffff);
+
+        if (status.isVip) {
+            mUserVipText.setVisibility(View.VISIBLE);
+            mUserVipText.setText("大会员");
+            mUserVipText.setTextColor(0xffff6b00);
+        } else {
+            mUserVipText.setVisibility(View.GONE);
+        }
+
+        mUserMidText.setText("UID: " + status.mid);
+        mUserCookieInfo.setText("登录有效");
+
+        // Load avatar
+        if (status.face != null && status.face.length() > 0) {
+            loadAvatar(status.face);
+        }
+
+        Logger.i("Main", "用户卡: " + status.uname + " VIP=" + status.isVip);
+    }
+
+    private void showCookieCard(final LoginStatus status) {
+        mUserInfoCard.setVisibility(View.VISIBLE);
+        mHintCard.setVisibility(View.GONE);
+
+        if (status != null && status.isLoggedIn) {
+            mUserNameText.setText(status.uname);
+            mUserVipText.setVisibility(View.GONE);
+            mUserMidText.setText("UID: " + status.mid);
+        } else {
+            mUserNameText.setText("Cookie 用户");
+            mUserVipText.setVisibility(View.GONE);
+            mUserMidText.setText("");
+        }
+
+        mUserNameText.setTextColor(0xffcccccc);
+        mUserCookieInfo.setText("Cookie已导入但未验证，请重新登录");
+        mUserCookieInfo.setTextColor(0xffff6b00);
+    }
+
+    private void loadAvatar(final String url) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+                    conn.setConnectTimeout(10000);
+                    conn.setReadTimeout(10000);
+                    InputStream is = conn.getInputStream();
+                    final Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    is.close();
+                    conn.disconnect();
+
+                    if (bitmap != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mUserAvatar.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
+                } catch (Exception ignored) {}
+            }
+        }).start();
+    }
+
     private void showError(final String msg) {
         runOnUiThread(new Runnable() {
             @Override
@@ -318,10 +447,21 @@ public class MainActivity extends Activity {
                 final String path = Logger.saveToFile();
                 if (path != null) {
                     Toast.makeText(MainActivity.this,
-                            "日志已保存: " + path, Toast.LENGTH_LONG).show();
+                            "日志已保存:\n" + path, Toast.LENGTH_LONG).show();
+                    Logger.i("Main", "日志已保存到: " + path);
                 } else {
-                    Toast.makeText(MainActivity.this,
-                            "保存失败", Toast.LENGTH_SHORT).show();
+                    // Fallback: share via system file manager
+                    try {
+                        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                        shareIntent.setType("text/plain");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, Logger.getLogsAsString());
+                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "解析App日志");
+                        startActivity(Intent.createChooser(shareIntent, "保存日志到..."));
+                        Logger.i("Main", "文件保存失败，转为分享日志");
+                    } catch (Exception ex) {
+                        Toast.makeText(MainActivity.this,
+                                "保存和分享均失败", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });

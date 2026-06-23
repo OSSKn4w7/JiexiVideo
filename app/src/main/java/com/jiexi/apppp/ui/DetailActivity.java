@@ -486,9 +486,15 @@ public class DetailActivity extends Activity {
         String ext = FileUtil.getExtensionFromUrl(opt.url);
         if (!ext.startsWith(".")) ext = ".mp4";
 
+        String fileName = FileUtil.sanitizeFileName(mVideoInfo.title)
+                + "_" + opt.qualityName + ext;
+        String fullPath = FileUtil.getDownloadDir().getAbsolutePath()
+                + java.io.File.separator + fileName;
+
         mDownloadService.addTask(mVideoInfo.title, opt.url,
                 opt.qualityName, ext, mVideoInfo.bvid);
-        Toast.makeText(this, "已添加下载: " + opt.qualityName, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "已添加下载: " + opt.qualityName
+                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 
     private void startAudioDownload(QualityOption opt) {
@@ -497,9 +503,15 @@ public class DetailActivity extends Activity {
             return;
         }
 
+        String fileName = FileUtil.sanitizeFileName(mVideoInfo.title)
+                + "_仅音频_" + opt.qualityName + ".m4a";
+        String fullPath = FileUtil.getDownloadDir().getAbsolutePath()
+                + java.io.File.separator + fileName;
+
         mDownloadService.addTask(mVideoInfo.title, opt.url,
                 "仅音频_" + opt.qualityName, ".m4a", mVideoInfo.bvid);
-        Toast.makeText(this, "已添加音频: " + opt.qualityName, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "已添加音频: " + opt.qualityName
+                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 
     private void startSubtitleDownload(SubtitleOption sub) {
@@ -508,9 +520,15 @@ public class DetailActivity extends Activity {
             return;
         }
 
+        String fileName = FileUtil.sanitizeFileName(mVideoInfo.title)
+                + "_字幕_" + sub.languageName + "." + sub.format;
+        String fullPath = FileUtil.getDownloadDir().getAbsolutePath()
+                + java.io.File.separator + fileName;
+
         mDownloadService.addTask(mVideoInfo.title + "_字幕", sub.url,
                 sub.languageName, "." + sub.format, mVideoInfo.bvid);
-        Toast.makeText(this, "已添加字幕: " + sub.languageName, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "已添加字幕: " + sub.languageName
+                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 
     private void copyOriginalLink() {
