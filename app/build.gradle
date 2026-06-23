@@ -8,8 +8,8 @@ android {
         applicationId "com.jiexi.apppp"
         minSdkVersion 19
         targetSdkVersion 24
-        versionCode 3
-        versionName "1.2"
+        versionCode 10
+        versionName "10.0"
     }
 
     buildTypes {
