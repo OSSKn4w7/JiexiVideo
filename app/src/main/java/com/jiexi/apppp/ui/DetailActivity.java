@@ -71,6 +71,7 @@ public class DetailActivity extends Activity {
     private String m720pUrl;
     private boolean mPreviewPlaying;
     private MediaPlayer mMediaPlayer;
+    private boolean mSurfaceReady;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -125,6 +126,26 @@ public class DetailActivity extends Activity {
         mPreviewFrame = (FrameLayout) findViewById(R.id.previewFrame);
         mThumbnailImage = (ImageView) findViewById(R.id.thumbnailImage);
         mPreviewVideo = (SurfaceView) findViewById(R.id.previewVideo);
+        mPreviewVideo.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(SurfaceHolder holder) {
+                mSurfaceReady = true;
+            }
+
+            @Override
+            public void surfaceChanged(SurfaceHolder holder, int format,
+                                        int width, int height) {
+                mSurfaceReady = true;
+            }
+
+            @Override
+            public void surfaceDestroyed(SurfaceHolder holder) {
+                mSurfaceReady = false;
+                if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.pause();
+                }
+            }
+        });
         mPlayOverlay = findViewById(R.id.playOverlay);
         mBtnPlay = (Button) findViewById(R.id.btnPlay);
         mTitleText = (TextView) findViewById(R.id.titleText);
@@ -187,29 +208,36 @@ public class DetailActivity extends Activity {
             return;
         }
 
+        // Release any existing player
+        if (mMediaPlayer != null) {
+            try { mMediaPlayer.release(); } catch (Exception ignored) {}
+            mMediaPlayer = null;
+        }
+
         mPlayOverlay.setVisibility(View.GONE);
         mThumbnailImage.setVisibility(View.GONE);
         mPreviewVideo.setVisibility(View.VISIBLE);
         mPreviewPlaying = true;
         mBtnPlay.setText("■");
 
-        Logger.i("Detail", "开始加载预览: " + m720pUrl);
+        Logger.i("Detail", "开始加载预览: " + m720pUrl.substring(0,
+                Math.min(60, m720pUrl.length())) + "...");
 
         mMediaPlayer = new MediaPlayer();
         try {
-            Map<String, String> headers = new HashMap<String, String>();
+            final Map<String, String> headers = new HashMap<String, String>();
             headers.put("Referer", "https://www.bilibili.com");
             headers.put("User-Agent",
                     "Mozilla/5.0 (Linux; Android 8.0) AppleWebKit/537.36 (KHTML, like Gecko)");
 
             mMediaPlayer.setDataSource(this, Uri.parse(m720pUrl), headers);
-            mMediaPlayer.setDisplay(mPreviewVideo.getHolder());
-            mMediaPlayer.setScreenOnWhilePlaying(true);
 
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     Logger.i("Detail", "预览流就绪, 开始播放");
+                    // SurfaceView keeps its surface (outside ScrollView), safe to play
+                    mp.setDisplay(mPreviewVideo.getHolder());
                     mp.start();
                 }
             });
@@ -234,6 +262,7 @@ public class DetailActivity extends Activity {
                 }
             });
 
+            mMediaPlayer.setScreenOnWhilePlaying(true);
             mMediaPlayer.prepareAsync();
 
         } catch (final Exception e) {

@@ -13,6 +13,7 @@ import android.os.IBinder;
 import com.jiexi.apppp.ui.DownloadListActivity;
 import com.jiexi.apppp.util.FileUtil;
 import com.jiexi.apppp.util.HttpUtil;
+import com.jiexi.apppp.util.Logger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -78,6 +79,7 @@ public class DownloadService extends Service {
         item.filePath = item.saveDir + File.separator + item.fileName;
 
         mTaskList.add(item);
+        Logger.i("Download", "添加任务: " + title + " [" + qualityName + "]");
         startDownload(item);
         return (int) item.id;
     }
@@ -190,6 +192,9 @@ public class DownloadService extends Service {
                     }
 
                 } catch (Exception e) {
+                    Logger.e("Download", "下载失败: " + item.title
+                            + " url=" + (item.url != null ? item.url.substring(0,
+                            Math.min(50, item.url.length())) : "null"), e);
                     if (item.status != DownloadItem.STATUS_PAUSED) {
                         item.status = DownloadItem.STATUS_FAILED;
                         updateNotification(item);

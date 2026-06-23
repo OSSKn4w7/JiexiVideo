@@ -1,0 +1,77 @@
+06-23 10:25:51.958 I/BiliApi: 用户未登录
+06-23 10:25:51.968 I/BiliApi: 用户未登录
+06-23 10:26:08.880 I/Main: 原始输入长度=37 提取URL=https://
+06-23 10:26:08.881 I/Main: 检测平台=B站 登录态=true VIP=false
+06-23 10:26:09.270 I/Main: B站 bvid=BV1HQjfd6ESz
+06-23 10:26:09.396 I/BiliApi: 请求播放地址: cookie 长度=243
+06-23 10:26:09.521 I/BiliApi: playurl code=0 可选画质数=6
+06-23 10:26:09.522 I/BiliApi: 解析完成: 视频流=6个 音频流=3个
+06-23 10:26:09.626 I/Main: B站解析成功: 让你吃你就吃?
+06-23 10:26:09.809 I/Detail: 视频画质: 6个, 音频: 3个, 字幕: 0个
+06-23 10:26:17.920 I/Detail: 开始加载预览: https://cn-zjhz-cm-0
+06-23 10:26:18.062 E/Detail: 预览异常
+java.lang.IllegalArgumentException: The surface has been relea
+at android.media.MediaPlayer._setVideoSurface(Native Method)
+at android.media.MediaPlayer.setDisplay(MediaPlayer.java:80$
+at com.jiexi.appp.ui.DetailActivity.startPreview(DetailActivity.
+at com.jiexi.appp.ui.DetailActivity.togglePreview(DetailActivit
+at com.jiexi.appp.ui.DetailActivity.access$1000034(Unknown
+at com.jiexi.appp.ui.DetailActivity$100000004.onClick(Detail
+at android.view.View.performClick(View.java:8213)
+at android.view.View.performClickInternal(View.java:8190)
+at android.view.View.-$$Nest$mperformClickInternal(Unknown
+at android.view.View$PerformClick.run(View.java:32715)
+at android.os.Handler.handleCallback(Handler.java:959)
+at android.os.Handler.dispatchMessage(Handler.java:100)
+at android.os.Looper.loopOnce(Looper.java:249)
+at android.os.Looper.loop(Looper.java:337)
+at android.app.ActivityThread.main(ActivityThread.java:9608)
+at java.lang.reflect.Method.invoke(Native Method)
+at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.
+at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:936)
+06-23 10:26:18.401 I/Detail: 开始加载预览: https://cn-zjhz-cm-0
+06-23 10:26:18.421 E/Detail: 预览异常
+java.lang.IllegalArgumentException: The surface has been relea
+at android.media.MediaPlayer._setVideoSurface(Native Method)
+at android.media.MediaPlayer.setDisplay(MediaPlayer.java:80$
+at com.jiexi.appp.ui.DetailActivity.startPreview(DetailActivity.
+at com.jiexi.appp.ui.DetailActivity.togglePreview(DetailActivit
+at com.jiexi.appp.ui.DetailActivity.access$1000034(Unknown
+at com.jiexi.appp.ui.DetailActivity$100000003.onClick(Detail
+at android.view.View.performClick(View.java:8213)
+at android.view.View.performClickInternal(View.java:8190)
+at android.view.View.-$$Nest$mperformClickInternal(Unknown
+at android.view.View$PerformClick.run(View.java:32715)
+at android.os.Handler.handleCallback(Handler.java:959)
+at android.os.Handler.dispatchMessage(Handler.java:100)
+at android.os.Looper.loopOnce(Looper.java:249)
+at android.os.Looper.loop(Looper.java:337)
+at android.app.ActivityThread.main(ActivityThread.java:9608)
+at java.lang.reflect.Method.invoke(Native Method)
+at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.
+at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:936)
+06-23 10:26:19.692 I/Detail: 开始加载预览: https://cn-zjhz-cm-0
+06-23 10:26:19.725 E/Detail: 预览异常
+java.lang.IllegalArgumentException: The surface has been relea
+at android.media.MediaPlayer._setVideoSurface(Native Method)
+at android.media.MediaPlayer.setDisplay(MediaPlayer.java:80$
+at com.jiexi.appp.ui.DetailActivity.startPreview(DetailActivity.
+at com.jiexi.appp.ui.DetailActivity.togglePreview(DetailActivit
+at com.jiexi.appp.ui.DetailActivity.access$1000034(Unknown
+at com.jiexi.appp.ui.DetailActivity$100000004.onClick(Detail
+at android.view.View.performClick(View.java:8213)
+at android.view.View.performClickInternal(View.java:8190)
+at android.view.View.-$$Nest$mperformClickInternal(Unknown
+at android.view.View$PerformClick.run(View.java:32715)
+at android.os.Handler.handleCallback(Handler.java:959)
+at android.os.Handler.dispatchMessage(Handler.java:100)
+at android.os.Looper.loopOnce(Looper.java:249)
+at android.os.Looper.loop(Looper.java:337)
+at android.app.ActivityThread.main(ActivityThread.java:9608)
+at java.lang.reflect.Method.invoke(Native Method)
+at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.
+at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:936)
+06-23 10:26:26.802 I/BiliApi: 用户未登录
+06-23 10:26:31.561 I/BiliApi: 用户未登录
+06-23 10:26:34.083 I/BiliApi: 用户未登录
+06-23 10:26:43.464 I/Main: 打开日志查看器

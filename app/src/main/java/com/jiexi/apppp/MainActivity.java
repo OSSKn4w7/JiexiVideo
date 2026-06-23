@@ -2,6 +2,8 @@ package com.jiexi.apppp;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -51,10 +53,21 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         mCookieManager = CookieManager.getInstance(this);
+        requestStoragePermission();
 
         initViews();
         checkLoginStatus();
         initWbi();
+    }
+
+    private void requestStoragePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+            }
+        }
     }
 
     @Override
@@ -140,6 +153,8 @@ public class MainActivity extends Activity {
     }
 
     private void checkLoginStatus() {
+        final String cookie = mCookieManager.getCookie();
+        Logger.i("Main", "检查登录: cookie长度=" + (cookie != null ? cookie.length() : 0));
         new Thread(new Runnable() {
             @Override
             public void run() {
