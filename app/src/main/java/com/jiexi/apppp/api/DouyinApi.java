@@ -102,6 +102,19 @@ public class DouyinApi {
             vidUrl = extractFirst(body, "modal_id=", "\"");
             if (vidUrl != null) return "https://www.douyin.com/video/" + vidUrl;
 
+            // Search for 19-digit video ID in entire body
+            int vidStart = findLongDigit(body, 15);
+            if (vidStart >= 0) {
+                String around = body.substring(Math.max(0, vidStart - 30),
+                        Math.min(body.length(), vidStart + 50));
+                Logger.i("DouyinApi", "找到长数字: " + around);
+                String id = body.substring(vidStart,
+                        vidStart + findDigitLen(body, vidStart));
+                if (id.length() >= 16) {
+                    return "https://www.douyin.com/video/" + id;
+                }
+            }
+
             // Try regex for any numeric video ID near douyin.com
             int idx = body.indexOf("douyin.com");
             if (idx >= 0) {
@@ -127,6 +140,28 @@ public class DouyinApi {
         int end = text.indexOf(endChar, start);
         if (end < 0) end = Math.min(start + 30, text.length());
         return text.substring(start, end).trim();
+    }
+
+    private static int findLongDigit(String text, int minLen) {
+        if (text == null) return -1;
+        int run = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (Character.isDigit(text.charAt(i))) {
+                run++;
+                if (run >= minLen) return i - run + 1;
+            } else {
+                run = 0;
+            }
+        }
+        return -1;
+    }
+
+    private static int findDigitLen(String text, int start) {
+        int len = 0;
+        for (int i = start; i < text.length(); i++) {
+            if (Character.isDigit(text.charAt(i))) len++; else break;
+        }
+        return len;
     }
 
     /**
