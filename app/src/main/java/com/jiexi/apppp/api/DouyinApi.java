@@ -120,29 +120,121 @@ public class DouyinApi {
 
     private static String extractVideoIdFromHtml(String html) {
         if (html == null) return null;
-        // Common patterns in Douyin share pages:
-        String[] patterns = {
-                "\"aweme_id\":\"", "\"item_id\":\"",
-                "/video/", "video_id\":\""
-        };
-        for (int i = 0; i < patterns.length; i++) {
-            String pat = patterns[i];
-            int idx = html.indexOf(pat);
+
+        // Try to find JSON render data first (most reliable)
+        String jsonData = extractJsonBlock(html, "RENDER_DATA");
+        Logger.i("DouyinApi", "RENDER_DATA长度="
+                + (jsonData != null ? jsonData.length() : 0));
+        if (jsonData != null) {
+            String vid = extractVideoIdFromJson(jsonData);
+            if (vid != null) return vid;
+        }
+
+        // Try window.__INITIAL_STATE__
+        jsonData = extractJsonBlock(html, "__INITIAL_STATE__");
+        if (jsonData != null) {
+            String vid = extractVideoIdFromJson(jsonData);
+            if (vid != null) return vid;
+        }
+
+        // Fallback: scan entire HTML for ID patterns
+        String[] patterns = {"aweme_id", "item_id", "video_id",
+                "/video/", "modal_id="};
+        for (int pi = 0; pi < patterns.length; pi++) {
+            String pat = patterns[pi];
+            String result = scanForId(html, pat);
+            if (result != null) return result;
+        }
+
+        return null;
+    }
+
+    private static String extractJsonBlock(String html, String blockId) {
+        // Pattern: <script id="RENDER_DATA" ...>JSON</script>
+        // or: window.__INITIAL_STATE__ *= *{JSON}
+        int start = -1;
+        int end = -1;
+
+        if (blockId.equals("RENDER_DATA")) {
+            start = html.indexOf("id=\"RENDER_DATA\"");
+            if (start < 0) start = html.indexOf("id='RENDER_DATA'");
+            if (start < 0) return null;
+            start = html.indexOf(">", start) + 1;
+            end = html.indexOf("</script>", start);
+        } else if (blockId.equals("__INITIAL_STATE__")) {
+            start = html.indexOf("__INITIAL_STATE__");
+            if (start < 0) return null;
+            start = html.indexOf("{", start);
+            if (start < 0) return null;
+            // Find matching closing brace (rough)
+            int depth = 0;
+            for (int i = start; i < html.length(); i++) {
+                char c = html.charAt(i);
+                if (c == '{') depth++;
+                else if (c == '}') { depth--; if (depth == 0) { end = i + 1; break; } }
+            }
+        }
+
+        if (start >= 0 && end > start) {
+            return html.substring(start, end);
+        }
+        return null;
+    }
+
+    private static String extractVideoIdFromJson(String json) {
+        if (json == null) return null;
+        // Search for numeric ID values near key video fields
+        String[] keys = {"\"aweme_id\":\"", "\"aweme_id\":", "\"item_id\":\"",
+                "\"item_id\":", "\"video_id\":\"", "\"video_id\":"};
+        for (int ki = 0; ki < keys.length; ki++) {
+            String key = keys[ki];
+            int idx = json.indexOf(key);
             if (idx >= 0) {
-                int start = idx + pat.length();
+                int s = idx + key.length();
+                // Skip opening quote if present
+                if (s < json.length() && json.charAt(s) == '"') s++;
                 StringBuilder sb = new StringBuilder();
-                for (int j = start; j < html.length() && j < start + 30; j++) {
-                    char c = html.charAt(j);
-                    if (c == '"' || c == '&' || c == '?' || c == '/'
-                            || c == '\\' || c == '\'') break;
+                for (int j = s; j < json.length() && j < s + 30; j++) {
+                    char c = json.charAt(j);
+                    if (!Character.isDigit(c)) break;
                     sb.append(c);
                 }
-                String id = sb.toString().trim();
-                if (id.length() > 5 && id.length() < 30
-                        && id.matches("[0-9]+")) {
-                    return id;
+                String id = sb.toString();
+                if (id.length() > 10 && id.length() < 25) return id;
+            }
+        }
+        return null;
+    }
+
+    private static String scanForId(String html, String pattern) {
+        int idx = 0;
+        while ((idx = html.indexOf(pattern, idx)) >= 0) {
+            int start = idx + pattern.length();
+            // If pattern is like /video/ or modal_id=, just grab digits
+            StringBuilder sb = new StringBuilder();
+            for (int j = start; j < html.length() && j < start + 30; j++) {
+                char c = html.charAt(j);
+                if (c == '"' || c == '&' || c == '?' || c == '/'
+                        || c == '\\' || c == '\'' || c == ' ' || c == ',') break;
+                sb.append(c);
+            }
+            String id = sb.toString().trim();
+            // If pattern is a key name like aweme_id, also try after :" format
+            if (id.length() < 8 && (pattern.contains("_id") || pattern.contains("video/"))) {
+                // Try the JSON value format: "key":"value"
+                int colon = html.indexOf(":", start);
+                if (colon > start && colon < start + 20) {
+                    int quote = html.indexOf("\"", colon + 2);
+                    int endQuote = html.indexOf("\"", quote + 1);
+                    if (quote > 0 && endQuote > quote) {
+                        id = html.substring(quote + 1, endQuote).trim();
+                    }
                 }
             }
+            if (id.length() > 10 && id.length() < 25 && id.matches("[0-9]+")) {
+                return id;
+            }
+            idx = start;
         }
         return null;
     }
