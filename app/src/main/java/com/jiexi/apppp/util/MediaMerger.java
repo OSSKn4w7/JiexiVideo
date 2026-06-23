@@ -84,44 +84,36 @@ public class MediaMerger {
     }
 
     private static void copyTrack(MediaExtractor extractor, MediaMuxer muxer,
-                                   int trackIndex) {
+                                   int muxerTrackIndex) {
         ByteBuffer buffer = ByteBuffer.allocate(256 * 1024);
-        MediaFormat format = extractor.getTrackFormat(trackIndex);
-        // Adjust sample rate for audio if needed (some decoders are picky)
-        long durationUs = format.containsKey(MediaFormat.KEY_DURATION)
-                ? format.getLong(MediaFormat.KEY_DURATION) : Long.MAX_VALUE;
-
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         long ptsOffset = -1;
-        long startTime = System.currentTimeMillis();
 
         while (true) {
-            try {
-                info.size = extractor.readSampleData(buffer, 0);
-                if (info.size < 0) break;
+            info.size = extractor.readSampleData(buffer, 0);
+            if (info.size < 0) break;
 
-                info.offset = 0;
-                info.presentationTimeUs = extractor.getSampleTime();
-                info.flags = extractor.getSampleFlags();
+            info.offset = 0;
+            info.presentationTimeUs = extractor.getSampleTime();
+            info.flags = extractor.getSampleFlags();
 
-                // Align presentation timestamps between tracks
-                if (ptsOffset < 0) {
-                    ptsOffset = info.presentationTimeUs;
-                }
-                info.presentationTimeUs -= ptsOffset;
-
-                if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                    // Some muxers reject CODEC_CONFIG frames; skip them
-                    extractor.advance();
-                    continue;
-                }
-
-                muxer.writeSampleData(trackIndex, buffer, info);
-                extractor.advance();
-
-            } catch (Exception e) {
-                break;
+            if (ptsOffset < 0) {
+                ptsOffset = info.presentationTimeUs;
             }
+            info.presentationTimeUs -= ptsOffset;
+
+            // Skip config frames — some muxers reject them
+            if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                extractor.advance();
+                continue;
+            }
+
+            try {
+                muxer.writeSampleData(muxerTrackIndex, buffer, info);
+            } catch (Exception e) {
+                // Muxer might reject some frames; skip and continue
+            }
+            extractor.advance();
         }
     }
 }

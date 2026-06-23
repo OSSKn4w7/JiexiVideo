@@ -525,8 +525,8 @@ public class DetailActivity extends Activity {
             return;
         }
 
-        String ext = FileUtil.getExtensionFromUrl(opt.url);
-        if (!ext.startsWith(".")) ext = ".mp4";
+        // Force .mp4 extension regardless of CDN URL extension
+        String ext = ".mp4";
 
         String fileName = FileUtil.sanitizeFileName(mVideoInfo.title)
                 + "_" + opt.qualityName + ext;
