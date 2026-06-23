@@ -1,0 +1,15 @@
+<resources>
+    <style name="AppTheme" parent="android:Theme.Black.NoTitleBar">
+        <item name="android:colorBackground">#0f0f0f</item>
+        <item name="android:colorForeground">#ffffff</item>
+        <item name="android:textColorPrimary">#ffffff</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:navigationBarColor">#0f0f0f</item>
+        <item name="android:statusBarColor">#0f0f0f</item>
+        <item name="android:buttonStyle">@style/CustomButton</item>
+    </style>
+
+    <style name="CustomButton" parent="android:Widget.Button">
+        <item name="android:textColor">#ffffff</item>
+    </style>
+</resources>

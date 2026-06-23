@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0f0f0f"
+    android:padding="16dp">
+
+    <!-- Top bar: Login status -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:id="@+id/loginStatusLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:clickable="true">
+
+            <ImageView
+                android:id="@+id/avatarImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_launcher" />
+
+            <TextView
+                android:id="@+id/loginStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="未登录"
+                android:textColor="#aaaaaa"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnDownloads"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:text="下载列表"
+            android:textSize="13sp"
+            android:textColor="#ffffff"
+            android:background="#272727" />
+    </LinearLayout>
+
+    <!-- Platform tabs -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
+
+        <Button
+            android:id="@+id/tabBilibili"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginRight="8dp"
+            android:text="B站"
+            android:textSize="15sp"
+            android:textColor="#ffffff"
+            android:background="#fb7299" />
+
+        <Button
+            android:id="@+id/tabDouyin"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="抖音"
+            android:textSize="15sp"
+            android:textColor="#888888"
+            android:background="#272727" />
+    </LinearLayout>
+
+    <!-- URL Input -->
+    <EditText
+        android:id="@+id/urlInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="64dp"
+        android:hint="粘贴分享链接（支持自动识别抖音/B站链接）"
+        android:textColorHint="#555555"
+        android:textColor="#ffffff"
+        android:textSize="14sp"
+        android:background="#1a1a1a"
+        android:padding="12dp"
+        android:maxLines="4"
+        android:gravity="top"
+        android:inputType="textMultiLine" />
+
+    <!-- Parse button -->
+    <Button
+        android:id="@+id/btnParse"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:text="解析"
+        android:textColor="#ffffff"
+        android:textSize="16sp"
+        android:background="#fb7299"
+        android:textStyle="bold" />
+
+    <!-- Loading indicator -->
+    <LinearLayout
+        android:id="@+id/loadingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:indeterminate="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="正在解析..."
+            android:textColor="#aaaaaa"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Error message -->
+    <TextView
+        android:id="@+id/errorText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textColor="#ff4444"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <!-- Hint card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="粘贴视频链接并点击解析"
+            android:textColor="#444444"
+            android:textSize="16sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="支持 B站 &amp; 抖音"
+            android:textColor="#333333"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+</LinearLayout>

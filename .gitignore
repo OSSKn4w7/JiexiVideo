@@ -1,0 +1,26 @@
+# Build outputs
+/build
+/app/build
+/builds
+
+# Gradle cache
+.gradle/
+gradle-app.setting
+
+# Local machine config
+local.properties
+
+# IDE files
+*.iml
+.idea/
+
+# App artifacts
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# System files
+Thumbs.db
+.DS_Store
