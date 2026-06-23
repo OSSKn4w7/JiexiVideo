@@ -47,30 +47,86 @@ public class DouyinApi {
     }
 
     /**
-     * Resolve v.douyin.com short URL with anti-spider headers.
+     * Resolve v.douyin.com short URL by reading response HTML for redirect target.
      */
     private static String resolveDouyinRedirect(String urlStr) {
         java.net.HttpURLConnection conn = null;
         try {
+            // Strategy A: fetch without redirect to get the landing URL in HTML
             java.net.URL url = new java.net.URL(urlStr);
             conn = (java.net.HttpURLConnection) url.openConnection();
-            conn.setInstanceFollowRedirects(true);
+            conn.setInstanceFollowRedirects(false);
             conn.setConnectTimeout(8000);
             conn.setReadTimeout(8000);
             conn.setRequestProperty("User-Agent",
                     "Mozilla/5.0 (Linux; Android 8.0; Pixel 2) AppleWebKit/537.36 "
                     + "(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
             conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9");
-            conn.setRequestProperty("Referer", "https://www.douyin.com/");
-            conn.setRequestProperty("X-Requested-With", "XMLHttpRequest");
             conn.connect();
-            return conn.getURL().toString();
+            int code = conn.getResponseCode();
+
+            // Follow HTTP redirects (with depth limit)
+            if (code == 301 || code == 302) {
+                String loc = conn.getHeaderField("Location");
+                if (loc != null && !loc.equals(urlStr)) {
+                    conn.disconnect();
+                    conn = null;
+                    return resolveDouyinRedirect(loc);
+                }
+            }
+
+            // Read response body and search for video URL patterns
+            java.io.InputStream is = conn.getInputStream();
+            java.io.ByteArrayOutputStream baos =
+                    new java.io.ByteArrayOutputStream();
+            byte[] buf = new byte[4096];
+            int n;
+            while ((n = is.read(buf)) != -1) {
+                baos.write(buf, 0, n);
+            }
+            is.close();
+            String body = baos.toString("UTF-8");
+            Logger.i("DouyinApi", "短链接响应长度=" + body.length());
+            Logger.i("DouyinApi", "响应前300: " + body.substring(0,
+                    Math.min(300, body.length())));
+
+            // Search for douyin.com/video/ URL in HTML
+            String vidUrl = extractFirst(body,
+                    "https://www.douyin.com/video/",
+                    "\"");
+            if (vidUrl != null) return "https://www.douyin.com/video/" + vidUrl;
+
+            vidUrl = extractFirst(body, "douyin.com/video/", "\"");
+            if (vidUrl != null) return "https://www.douyin.com/video/" + vidUrl;
+
+            vidUrl = extractFirst(body, "modal_id=", "\"");
+            if (vidUrl != null) return "https://www.douyin.com/video/" + vidUrl;
+
+            // Try regex for any numeric video ID near douyin.com
+            int idx = body.indexOf("douyin.com");
+            if (idx >= 0) {
+                String around = body.substring(Math.max(0, idx - 20),
+                        Math.min(body.length(), idx + 200));
+                String id = extractVideoId(around);
+                if (id != null) return around;
+            }
+
         } catch (Exception e) {
-            Logger.e("DouyinApi", "重定向失败", e);
-            return urlStr;
+            Logger.e("DouyinApi", "短链接解析失败", e);
         } finally {
             if (conn != null) conn.disconnect();
         }
+        return urlStr;
+    }
+
+    private static String extractFirst(String text, String prefix, String endChar) {
+        if (text == null) return null;
+        int idx = text.indexOf(prefix);
+        if (idx < 0) return null;
+        int start = idx + prefix.length();
+        int end = text.indexOf(endChar, start);
+        if (end < 0) end = Math.min(start + 30, text.length());
+        return text.substring(start, end).trim();
     }
 
     /**
