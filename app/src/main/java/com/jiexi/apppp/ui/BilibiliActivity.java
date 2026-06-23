@@ -462,7 +462,7 @@ public class BilibiliActivity extends Activity {
         projectView.setText("JiexiVideo");
         projectView.setTextSize(18);
         projectView.setTextColor(0xffffffff);
-        projectView.setTextStyle(android.graphics.Typeface.BOLD);
+        projectView.setTypeface(null, android.graphics.Typeface.BOLD);
         projectView.setGravity(android.view.Gravity.CENTER);
         projectView.setPadding(0, 16, 0, 8);
         layout.addView(projectView);
