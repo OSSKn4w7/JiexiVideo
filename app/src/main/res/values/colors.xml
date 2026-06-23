@@ -6,4 +6,8 @@
     <color name="text_primary">#ffffff</color>
     <color name="text_secondary">#98989d</color>
     <color name="text_muted">#6e6e73</color>
+    <color name="input_bg">#14ffffff</color>
+    <color name="card_bg_start">#33ffffff</color>
+    <color name="card_bg_end">#08ffffff</color>
+    <color name="btn_secondary_bg">#18ffffff</color>
 </resources>

@@ -5,4 +5,11 @@
         <item name="android:navigationBarColor">@color/background</item>
         <item name="android:statusBarColor">@color/background</item>
     </style>
+
+    <style name="AppTheme.Light" parent="android:Theme.Light.NoTitleBar">
+        <item name="android:colorBackground">#f5f5f7</item>
+        <item name="android:windowBackground">#f5f5f7</item>
+        <item name="android:navigationBarColor">#f5f5f7</item>
+        <item name="android:statusBarColor">#f5f5f7</item>
+    </style>
 </resources>

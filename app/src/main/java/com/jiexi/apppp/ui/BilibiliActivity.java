@@ -2,6 +2,7 @@ package com.jiexi.apppp.ui;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -48,9 +49,15 @@ public class BilibiliActivity extends Activity {
     private CookieManager mCookieManager;
     private boolean mIsLoggedIn;
     private boolean mIsVip;
+    private boolean mIsLightTheme;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
+        mIsLightTheme = prefs.getBoolean("light", false);
+        if (mIsLightTheme) {
+            setTheme(R.style.AppTheme_Light);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bilibili);
 
@@ -92,6 +99,18 @@ public class BilibiliActivity extends Activity {
         mUserCookieInfo = (TextView) findViewById(R.id.userCookieInfo);
         mBtnLogout = (Button) findViewById(R.id.btnLogout);
         mHintCard = (LinearLayout) findViewById(R.id.hintCard);
+
+        // Theme toggle
+        Button btnTheme = (Button) findViewById(R.id.btnTheme);
+        btnTheme.setText(mIsLightTheme ? "☾" : "☀");
+        btnTheme.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
+                prefs.edit().putBoolean("light", !mIsLightTheme).apply();
+                recreate();
+            }
+        });
 
         mBtnParse.setOnClickListener(new View.OnClickListener() {
             @Override
