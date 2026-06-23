@@ -98,7 +98,11 @@ public class DouyinApi {
             // Use a different approach: fetch the share page HTML and parse.
             String sharePageUrl = "https://www.iesdouyin.com/share/video/" + code;
             String html = HttpUtil.get(sharePageUrl, headers);
-            Logger.i("DouyinApi", "分享页长度=" + (html != null ? html.length() : 0));
+            Logger.i("DouyinApi", "分享页HTML长度=" + (html != null ? html.length() : 0));
+            if (html != null && html.length() > 100) {
+                Logger.i("DouyinApi", "HTML前500: " + html.substring(0,
+                        Math.min(500, html.length())));
+            }
 
             // Try to extract video ID from page HTML
             String vid = extractVideoIdFromHtml(html);
