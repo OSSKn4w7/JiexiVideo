@@ -77,9 +77,13 @@ public class DouyinApi {
                 conn.connect();
 
                 java.util.List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
+                Logger.i("DouyinApi", "Set-Cookie数量="
+                        + (setCookies != null ? setCookies.size() : 0));
                 conn.disconnect();
                 conn = null;
 
+                // Build cookie string if available
+                String cookieHeader = null;
                 if (setCookies != null && setCookies.size() > 0) {
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < setCookies.size(); i++) {
@@ -90,24 +94,26 @@ public class DouyinApi {
                             sb.append(kv);
                         }
                     }
-                    String cookieHeader = sb.toString();
-                    Logger.i("DouyinApi", "Cookie重定向: len=" + cookieHeader.length());
-
-                    url = new java.net.URL(shareUrl);
-                    conn = (java.net.HttpURLConnection) url.openConnection();
-                    conn.setInstanceFollowRedirects(true);
-                    conn.setConnectTimeout(8000);
-                    conn.setReadTimeout(8000);
-                    conn.setRequestProperty("User-Agent",
-                            "Mozilla/5.0 (Linux; Android 13; SM-S9080) AppleWebKit/537.36 "
-                            + "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
-                    conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9");
-                    conn.setRequestProperty("Cookie", cookieHeader);
-                    conn.connect();
-                    String finalUrl = conn.getURL().toString();
-                    Logger.i("DouyinApi", "Cookie后: " + finalUrl);
-                    return finalUrl;
+                    cookieHeader = sb.toString();
                 }
+
+                // Try with auto-follow, optionally with cookies
+                url = new java.net.URL(shareUrl);
+                conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setInstanceFollowRedirects(true);
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                conn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Linux; Android 13; SM-S9080) AppleWebKit/537.36 "
+                        + "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+                conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9");
+                if (cookieHeader != null) {
+                    conn.setRequestProperty("Cookie", cookieHeader);
+                }
+                conn.connect();
+                String finalUrl = conn.getURL().toString();
+                Logger.i("DouyinApi", "最终重定向: " + finalUrl);
+                return finalUrl;
             } finally {
                 if (conn != null) conn.disconnect();
             }
