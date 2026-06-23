@@ -10,7 +10,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BilibiliApi {
@@ -170,8 +175,8 @@ public class BilibiliApi {
         if (dash != null) {
             JSONArray videos = dash.optJSONArray("video");
             if (videos != null) {
-                java.util.List<VideoInfo.QualityOption> rawList =
-                        new java.util.ArrayList<VideoInfo.QualityOption>();
+                List<VideoInfo.QualityOption> rawList =
+                        new ArrayList<VideoInfo.QualityOption>();
                 for (int i = 0; i < videos.length(); i++) {
                     JSONObject v = videos.getJSONObject(i);
                     VideoInfo.QualityOption opt = new VideoInfo.QualityOption();
@@ -320,45 +325,41 @@ public class BilibiliApi {
      */
     private static List<VideoInfo.QualityOption> groupQualities(
             List<VideoInfo.QualityOption> rawList) {
-        java.util.LinkedHashMap<String, VideoInfo.QualityOption> grouped =
-                new java.util.LinkedHashMap<String, VideoInfo.QualityOption>();
-        java.util.LinkedHashMap<String, java.util.List<VideoInfo.QualityOption>> fallbackMap =
-                new java.util.LinkedHashMap<String, java.util.List<VideoInfo.QualityOption>>();
+        LinkedHashMap<String, VideoInfo.QualityOption> grouped =
+                new LinkedHashMap<String, VideoInfo.QualityOption>();
+        LinkedHashMap<String, List<VideoInfo.QualityOption>> fallbackMap =
+                new LinkedHashMap<String, List<VideoInfo.QualityOption>>();
 
         for (int i = 0; i < rawList.size(); i++) {
             VideoInfo.QualityOption opt = rawList.get(i);
             String name = opt.qualityName;
             if (!grouped.containsKey(name)) {
                 grouped.put(name, opt);
-                fallbackMap.put(name, new java.util.ArrayList<VideoInfo.QualityOption>());
+                fallbackMap.put(name, new ArrayList<VideoInfo.QualityOption>());
             } else {
                 fallbackMap.get(name).add(opt);
             }
         }
 
-        // Sort each group: preferred codec first (look at codecPriority)
-        java.util.List<VideoInfo.QualityOption> result =
-                new java.util.ArrayList<VideoInfo.QualityOption>();
-        for (java.util.Map.Entry<String, VideoInfo.QualityOption> entry : grouped.entrySet()) {
+        List<VideoInfo.QualityOption> result =
+                new ArrayList<VideoInfo.QualityOption>();
+        for (Map.Entry<String, VideoInfo.QualityOption> entry : grouped.entrySet()) {
             String name = entry.getKey();
             VideoInfo.QualityOption primary = entry.getValue();
-            java.util.List<VideoInfo.QualityOption> fallbacks = fallbackMap.get(name);
+            List<VideoInfo.QualityOption> fallbacks = fallbackMap.get(name);
 
-            // Collect all variants (primary + fallbacks)
-            java.util.List<VideoInfo.QualityOption> all = new java.util.ArrayList<VideoInfo.QualityOption>();
+            List<VideoInfo.QualityOption> all =
+                    new ArrayList<VideoInfo.QualityOption>();
             all.add(primary);
             all.addAll(fallbacks);
 
-            // Sort by codec priority
-            java.util.Collections.sort(all, 
-                    new java.util.Comparator<VideoInfo.QualityOption>() {
+            Collections.sort(all, new Comparator<VideoInfo.QualityOption>() {
                 @Override
                 public int compare(VideoInfo.QualityOption a, VideoInfo.QualityOption b) {
                     return codecPriority(a.format) - codecPriority(b.format);
                 }
             });
 
-            // Set primary + fallbacks
             VideoInfo.QualityOption best = all.get(0);
             for (int i = 1; i < all.size(); i++) {
                 best.fallbackUrls.add(all.get(i).url);
