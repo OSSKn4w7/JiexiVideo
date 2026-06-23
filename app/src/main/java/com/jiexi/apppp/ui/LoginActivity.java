@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.jiexi.apppp.R;
+import com.jiexi.apppp.util.Logger;
 
 public class LoginActivity extends Activity {
 
@@ -89,14 +90,45 @@ public class LoginActivity extends Activity {
     }
 
     private void extractCookiesAndSave() {
-        String cookieStr = CookieManager.getInstance().getCookie("bilibili.com");
+        // Collect cookies from multiple B站 subdomains for complete capture
+        StringBuilder allCookies = new StringBuilder();
+        String[] urls = {
+                "https://bilibili.com",
+                "https://www.bilibili.com",
+                "https://api.bilibili.com",
+                "https://passport.bilibili.com"
+        };
+        java.util.HashSet<String> seenKeys = new java.util.HashSet<String>();
+
+        for (int i = 0; i < urls.length; i++) {
+            String url = urls[i];
+            String domainCookies = CookieManager.getInstance().getCookie(url);
+            if (domainCookies != null && domainCookies.length() > 0) {
+                String[] pairs = domainCookies.split(";");
+                for (int j = 0; j < pairs.length; j++) {
+                    String pair = pairs[j].trim();
+                    if (pair.length() == 0) continue;
+                    String key = pair.split("=", 2)[0];
+                    if (!seenKeys.contains(key)) {
+                        seenKeys.add(key);
+                        if (allCookies.length() > 0) allCookies.append("; ");
+                        allCookies.append(pair);
+                    }
+                }
+            }
+        }
+
+        final String cookieStr = allCookies.toString();
+        Logger.i("Login", "提取Cookie: " + seenKeys.size() + "个键, 长度=" + cookieStr.length());
         if (!TextUtils.isEmpty(cookieStr)) {
             mCookieManager.saveCookie(cookieStr);
+            com.jiexi.apppp.util.HttpUtil.setGlobalCookie(cookieStr);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     Toast.makeText(LoginActivity.this,
-                            "登录成功！Cookie 已保存", Toast.LENGTH_SHORT).show();
+                            "登录成功！Cookie 已保存 (" + cookieStr.length() + "字)",
+                            Toast.LENGTH_SHORT).show();
                     setResult(RESULT_OK);
                     finish();
                 }
