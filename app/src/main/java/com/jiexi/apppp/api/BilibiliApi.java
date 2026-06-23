@@ -292,7 +292,7 @@ public class BilibiliApi {
             status.mid = data.optLong("mid", 0);
             status.uname = data.optString("uname", "");
             status.face = data.optString("face", "");
-            status.isVip = data.optInt("vipType", 0) == 2;
+            status.isVip = data.optInt("vipType", 0) >= 1;
             Logger.i("BiliApi", "用户已登录: " + status.uname
                     + " VIP=" + status.isVip);
         } else {

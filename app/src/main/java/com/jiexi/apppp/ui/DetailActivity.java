@@ -238,9 +238,33 @@ public class DetailActivity extends Activity {
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    Logger.i("Detail", "预览流就绪, 开始播放 width="
-                            + mp.getVideoWidth() + "x" + mp.getVideoHeight());
-                    // SurfaceView keeps its surface (outside ScrollView), safe to play
+                    int vw = mp.getVideoWidth();
+                    int vh = mp.getVideoHeight();
+                    Logger.i("Detail", "预览流就绪, 开始播放 width=" + vw + "x" + vh);
+
+                    // Adjust SurfaceView to match video aspect ratio
+                    if (vw > 0 && vh > 0) {
+                        int containerWidth = mPreviewFrame.getWidth();
+                        int containerHeight = mPreviewFrame.getHeight();
+                        if (containerWidth > 0 && containerHeight > 0) {
+                            float videoRatio = (float) vw / vh;
+                            float containerRatio = (float) containerWidth / containerHeight;
+                            ViewGroup.LayoutParams lp = mPreviewVideo.getLayoutParams();
+                            if (videoRatio > containerRatio) {
+                                // Video wider than container — match width
+                                lp.width = containerWidth;
+                                lp.height = (int) (containerWidth / videoRatio);
+                            } else {
+                                // Video taller than container — match height
+                                lp.height = containerHeight;
+                                lp.width = (int) (containerHeight * videoRatio);
+                            }
+                            mPreviewVideo.setLayoutParams(lp);
+                            Logger.i("Detail", "预览尺寸调整: " + lp.width + "x"
+                                    + lp.height + " ratio=" + videoRatio);
+                        }
+                    }
+
                     mp.setDisplay(mPreviewVideo.getHolder());
                     mp.start();
                 }
