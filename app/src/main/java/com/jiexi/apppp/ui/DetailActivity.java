@@ -249,13 +249,13 @@ public class DetailActivity extends Activity {
                         if (containerWidth > 0 && containerHeight > 0) {
                             float videoRatio = (float) vw / vh;
                             float containerRatio = (float) containerWidth / containerHeight;
-                            ViewGroup.LayoutParams lp = mPreviewVideo.getLayoutParams();
+                            FrameLayout.LayoutParams lp =
+                                    (FrameLayout.LayoutParams) mPreviewVideo.getLayoutParams();
+                            lp.gravity = android.view.Gravity.CENTER;
                             if (videoRatio > containerRatio) {
-                                // Video wider than container — match width
                                 lp.width = containerWidth;
                                 lp.height = (int) (containerWidth / videoRatio);
                             } else {
-                                // Video taller than container — match height
                                 lp.height = containerHeight;
                                 lp.width = (int) (containerHeight * videoRatio);
                             }
@@ -421,13 +421,14 @@ public class DetailActivity extends Activity {
         // Build quality name with optional auth label
         String displayName = opt.qualityName;
         if (opt.needsAuth) {
-            displayName = displayName + "  " + (mIsVip ? "" : "(需登录)");
+            displayName = displayName + (mIsVip ? "" : " (需登录)");
         }
-        // Add codec info to differentiate duplicate quality names
-        displayName = displayName + " [" + codecLabel(opt.format) + "]";
         nameText.setText(displayName);
 
-        String infoStr = codecFull(opt.format);
+        String infoStr = opt.format.toUpperCase();
+        if (opt.fallbackUrls.size() > 0) {
+            infoStr += " +" + opt.fallbackUrls.size() + "备选";
+        }
         if (opt.fileSize > 0) {
             infoStr += "  ~" + FileUtil.formatSize(opt.fileSize);
         }
@@ -532,9 +533,11 @@ public class DetailActivity extends Activity {
         String fullPath = FileUtil.getDownloadDir().getAbsolutePath()
                 + java.io.File.separator + fileName;
 
-        mDownloadService.addTask(mVideoInfo.title, opt.url,
-                opt.qualityName, ext, mVideoInfo.bvid);
+        mDownloadService.addTaskWithFallback(mVideoInfo.title, opt.url,
+                opt.qualityName, ext, mVideoInfo.bvid, opt.fallbackUrls);
         Toast.makeText(this, "已添加下载: " + opt.qualityName
+                + (opt.fallbackUrls.size() > 0 ?
+                " (" + (opt.fallbackUrls.size() + 1) + "路备选)" : "")
                 + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 
@@ -629,19 +632,5 @@ public class DetailActivity extends Activity {
             return String.format("%.1f万", count / 10000.0);
         }
         return String.valueOf(count);
-    }
-
-    private static String codecLabel(String codecs) {
-        if (codecs == null) return "";
-        String lower = codecs.toLowerCase();
-        if (lower.contains("av1")) return "AV1";
-        if (lower.contains("hevc") || lower.contains("hvc1")) return "HEVC";
-        if (lower.contains("avc") || lower.contains("h264")) return "AVC";
-        return "";
-    }
-
-    private static String codecFull(String codecs) {
-        if (codecs == null || codecs.length() == 0) return "";
-        return codecs.toUpperCase();
     }
 }

@@ -42,6 +42,8 @@ public class VideoInfo implements Serializable {
         public boolean isAudio;
         /** Quality likely needs authentication; informational only */
         public boolean needsAuth;
+        /** Fallback URLs (different codecs for same quality level) */
+        public List<String> fallbackUrls = new ArrayList<String>();
     }
 
     public static class SubtitleOption implements Serializable {

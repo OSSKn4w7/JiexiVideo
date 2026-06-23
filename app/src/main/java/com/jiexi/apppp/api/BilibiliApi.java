@@ -165,11 +165,13 @@ public class BilibiliApi {
             }
         }
 
-        // Parse DASH video streams
+        // Parse DASH video streams — group by quality name for fallback
         JSONObject dash = data.optJSONObject("dash");
         if (dash != null) {
             JSONArray videos = dash.optJSONArray("video");
             if (videos != null) {
+                java.util.List<VideoInfo.QualityOption> rawList =
+                        new java.util.ArrayList<VideoInfo.QualityOption>();
                 for (int i = 0; i < videos.length(); i++) {
                     JSONObject v = videos.getJSONObject(i);
                     VideoInfo.QualityOption opt = new VideoInfo.QualityOption();
@@ -182,13 +184,12 @@ public class BilibiliApi {
                     opt.format = v.optString("codecs", "avc");
                     opt.url = v.optString("baseUrl", v.optString("base_url", ""));
                     opt.fileSize = estimateFileSize(info.durationSeconds, opt.qualityCode, false);
-                    // Mark qualities likely needing auth — informational only
                     opt.needsAuth = (opt.qualityCode >= QN_LOGIN_REQUIRED);
-
                     if (opt.url.length() > 0) {
-                        info.videoQualities.add(opt);
+                        rawList.add(opt);
                     }
                 }
+                info.videoQualities = groupQualities(rawList);
             }
 
             // Parse DASH audio streams
@@ -308,6 +309,73 @@ public class BilibiliApi {
         public long mid;
         public String uname;
         public String face;
+    }
+
+    // AVC is most compatible, prioritize
+    private static final String[] CODEC_PRIORITY = {"avc", "hevc", "av1"};
+
+    /**
+     * Group raw DASH streams by qualityName. Primary = most compatible codec,
+     * fallbacks = other codecs for same quality level.
+     */
+    private static List<VideoInfo.QualityOption> groupQualities(
+            List<VideoInfo.QualityOption> rawList) {
+        java.util.LinkedHashMap<String, VideoInfo.QualityOption> grouped =
+                new java.util.LinkedHashMap<String, VideoInfo.QualityOption>();
+        java.util.LinkedHashMap<String, java.util.List<VideoInfo.QualityOption>> fallbackMap =
+                new java.util.LinkedHashMap<String, java.util.List<VideoInfo.QualityOption>>();
+
+        for (int i = 0; i < rawList.size(); i++) {
+            VideoInfo.QualityOption opt = rawList.get(i);
+            String name = opt.qualityName;
+            if (!grouped.containsKey(name)) {
+                grouped.put(name, opt);
+                fallbackMap.put(name, new java.util.ArrayList<VideoInfo.QualityOption>());
+            } else {
+                fallbackMap.get(name).add(opt);
+            }
+        }
+
+        // Sort each group: preferred codec first (look at codecPriority)
+        java.util.List<VideoInfo.QualityOption> result =
+                new java.util.ArrayList<VideoInfo.QualityOption>();
+        for (java.util.Map.Entry<String, VideoInfo.QualityOption> entry : grouped.entrySet()) {
+            String name = entry.getKey();
+            VideoInfo.QualityOption primary = entry.getValue();
+            java.util.List<VideoInfo.QualityOption> fallbacks = fallbackMap.get(name);
+
+            // Collect all variants (primary + fallbacks)
+            java.util.List<VideoInfo.QualityOption> all = new java.util.ArrayList<VideoInfo.QualityOption>();
+            all.add(primary);
+            all.addAll(fallbacks);
+
+            // Sort by codec priority
+            java.util.Collections.sort(all, 
+                    new java.util.Comparator<VideoInfo.QualityOption>() {
+                @Override
+                public int compare(VideoInfo.QualityOption a, VideoInfo.QualityOption b) {
+                    return codecPriority(a.format) - codecPriority(b.format);
+                }
+            });
+
+            // Set primary + fallbacks
+            VideoInfo.QualityOption best = all.get(0);
+            for (int i = 1; i < all.size(); i++) {
+                best.fallbackUrls.add(all.get(i).url);
+            }
+            result.add(best);
+        }
+
+        return result;
+    }
+
+    private static int codecPriority(String codecs) {
+        if (codecs == null) return 99;
+        String lower = codecs.toLowerCase();
+        for (int i = 0; i < CODEC_PRIORITY.length; i++) {
+            if (lower.contains(CODEC_PRIORITY[i])) return i;
+        }
+        return 99;
     }
 
     private static String getQualityName(int qn) {

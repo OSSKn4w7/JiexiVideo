@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
+
 import com.jiexi.apppp.ui.DownloadListActivity;
 import com.jiexi.apppp.util.FileUtil;
 import com.jiexi.apppp.util.HttpUtil;
@@ -63,6 +64,22 @@ public class DownloadService extends Service {
 
     public synchronized int addTask(String title, String url, String qualityName,
                                      String fileExt, String bvid) {
+        return addTaskWithFallback(title, url, qualityName, fileExt, bvid, null);
+    }
+
+    public synchronized int addTaskWithFallback(String title, String url, String qualityName,
+                                     String fileExt, String bvid,
+                                     List<String> fallbackUrls) {
+        // Deduplicate: skip if same title+quality already downloading
+        for (DownloadItem existing : mTaskList) {
+            if (existing.title.equals(title) && existing.qualityName.equals(qualityName)) {
+                if (existing.status == DownloadItem.STATUS_DOWNLOADING
+                        || existing.status == DownloadItem.STATUS_PENDING) {
+                    return (int) existing.id;
+                }
+            }
+        }
+
         DownloadItem item = new DownloadItem();
         item.id = System.currentTimeMillis();
         item.title = title;
@@ -79,8 +96,10 @@ public class DownloadService extends Service {
         item.filePath = item.saveDir + File.separator + item.fileName;
 
         mTaskList.add(item);
-        Logger.i("Download", "添加任务: " + title + " [" + qualityName + "]");
-        startDownload(item);
+        Logger.i("Download", "添加: " + title + " [" + qualityName + "]"
+                + (fallbackUrls != null && fallbackUrls.size() > 0 ?
+                " 备选" + fallbackUrls.size() : ""));
+        startDownload(item, fallbackUrls);
         return (int) item.id;
     }
 
@@ -94,7 +113,7 @@ public class DownloadService extends Service {
     public synchronized void resumeTask(long id) {
         DownloadItem item = findTask(id);
         if (item != null && item.status == DownloadItem.STATUS_PAUSED) {
-            startDownload(item);
+            startDownload(item, null);
         }
     }
 
@@ -105,7 +124,6 @@ public class DownloadService extends Service {
                 if (item.status == DownloadItem.STATUS_DOWNLOADING) {
                     item.status = DownloadItem.STATUS_PAUSED;
                 }
-                // Delete file
                 try {
                     File f = new File(item.filePath);
                     if (f.exists()) f.delete();
@@ -127,93 +145,116 @@ public class DownloadService extends Service {
         return new ArrayList<DownloadItem>(mTaskList);
     }
 
-    private void startDownload(final DownloadItem item) {
+    private void startDownload(final DownloadItem item, final List<String> fallbackUrls) {
         item.status = DownloadItem.STATUS_DOWNLOADING;
         updateNotification(item);
 
         Future<?> future = mExecutor.submit(new Runnable() {
             @Override
             public void run() {
-                HttpURLConnection conn = null;
-                InputStream is = null;
-                FileOutputStream fos = null;
-                try {
-                    File file = new File(item.filePath);
-                    File parent = file.getParentFile();
-                    if (parent != null && !parent.exists()) {
-                        parent.mkdirs();
-                    }
-
-                    long startOffset = 0;
-                    if (file.exists()) {
-                        startOffset = file.length();
-                        item.downloadedSize = startOffset;
-                    }
-
-                    conn = HttpUtil.openDownloadConnection(item.url, startOffset);
-                    conn.connect();
-
-                    int responseCode = conn.getResponseCode();
-                    if (responseCode != 200 && responseCode != 206) {
-                        throw new Exception("HTTP " + responseCode);
-                    }
-
-                    long contentLength = conn.getContentLength();
-                    if (contentLength > 0) {
-                        item.totalSize = startOffset + contentLength;
-                    }
-
-                    is = conn.getInputStream();
-                    fos = new FileOutputStream(file, startOffset > 0);
-
-                    byte[] buffer = new byte[8192];
-                    int bytesRead;
-                    long lastUpdateTime = System.currentTimeMillis();
-
-                    while (item.status == DownloadItem.STATUS_DOWNLOADING
-                            && (bytesRead = is.read(buffer)) != -1) {
-                        fos.write(buffer, 0, bytesRead);
-                        item.downloadedSize += bytesRead;
-
-                        long now = System.currentTimeMillis();
-                        if (now - lastUpdateTime > 200) {
-                            if (item.totalSize > 0) {
-                                item.progress = (int) (item.downloadedSize * 100 / item.totalSize);
-                            }
-                            updateNotification(item);
-                            lastUpdateTime = now;
-                        }
-                    }
-
-                    if (item.status == DownloadItem.STATUS_DOWNLOADING) {
-                        item.status = DownloadItem.STATUS_COMPLETED;
-                        item.progress = 100;
-                        updateNotification(item);
-                    }
-
-                } catch (Exception e) {
-                    Logger.e("Download", "下载失败: " + item.title
-                            + " url=" + (item.url != null ? item.url.substring(0,
-                            Math.min(50, item.url.length())) : "null"), e);
-                    if (item.status != DownloadItem.STATUS_PAUSED) {
-                        item.status = DownloadItem.STATUS_FAILED;
-                        updateNotification(item);
-                    }
-                } finally {
-                    if (fos != null) {
-                        try { fos.close(); } catch (Exception ignored) {}
-                    }
-                    if (is != null) {
-                        try { is.close(); } catch (Exception ignored) {}
-                    }
-                    if (conn != null) {
-                        conn.disconnect();
-                    }
-                }
+                downloadWithFallback(item, item.url, fallbackUrls, 0);
             }
         });
 
         mFutures.add(future);
+    }
+
+    private void downloadWithFallback(final DownloadItem item, final String currentUrl,
+                                        final List<String> fallbackUrls,
+                                        final int attemptIndex) {
+        HttpURLConnection conn = null;
+        InputStream is = null;
+        FileOutputStream fos = null;
+        try {
+            // Always start fresh — delete partial file
+            File file = new File(item.filePath);
+            if (file.exists()) file.delete();
+            File parent = file.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+
+            item.downloadedSize = 0;
+            Logger.i("Download", "下载#" + (attemptIndex + 1) + ": "
+                    + item.qualityName + " " + currentUrl.substring(0,
+                    Math.min(50, currentUrl.length())));
+
+            conn = HttpUtil.openDownloadConnection(currentUrl, 0);
+            conn.connect();
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode != 200 && responseCode != 206) {
+                // Try fallback
+                if (fallbackUrls != null && attemptIndex < fallbackUrls.size()) {
+                    downloadWithFallback(item, fallbackUrls.get(attemptIndex),
+                            fallbackUrls, attemptIndex + 1);
+                    return;
+                }
+                throw new Exception("HTTP " + responseCode);
+            }
+
+            long contentLength = conn.getContentLength();
+            item.totalSize = contentLength;
+
+            is = conn.getInputStream();
+            fos = new FileOutputStream(file, false);
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            long lastUpdateTime = System.currentTimeMillis();
+
+            while (item.status == DownloadItem.STATUS_DOWNLOADING
+                    && (bytesRead = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, bytesRead);
+                item.downloadedSize += bytesRead;
+
+                long now = System.currentTimeMillis();
+                if (now - lastUpdateTime > 200) {
+                    if (item.totalSize > 0) {
+                        item.progress = (int) (item.downloadedSize * 100 / item.totalSize);
+                    }
+                    updateNotification(item);
+                    lastUpdateTime = now;
+                }
+            }
+
+            if (item.status == DownloadItem.STATUS_DOWNLOADING) {
+                item.status = DownloadItem.STATUS_COMPLETED;
+                item.progress = 100;
+                updateNotification(item);
+                Logger.i("Download", "完成: " + item.title + " [" + item.qualityName + "]");
+            }
+
+        } catch (Exception e) {
+            // Try fallback
+            if (fallbackUrls != null && attemptIndex < fallbackUrls.size()) {
+                Logger.i("Download", "备选#" + (attemptIndex + 1)
+                        + ": " + item.qualityName);
+                downloadWithFallback(item, fallbackUrls.get(attemptIndex),
+                        fallbackUrls, attemptIndex + 1);
+                return;
+            }
+            Logger.e("Download", "失败: " + item.title + " ["
+                    + item.qualityName + "]", e);
+            if (item.status != DownloadItem.STATUS_PAUSED) {
+                item.status = DownloadItem.STATUS_FAILED;
+                updateNotification(item);
+                try {
+                    File f = new File(item.filePath);
+                    if (f.exists()) f.delete();
+                } catch (Exception ignored) {}
+            }
+        } finally {
+            if (fos != null) {
+                try { fos.close(); } catch (Exception ignored) {}
+            }
+            if (is != null) {
+                try { is.close(); } catch (Exception ignored) {}
+            }
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
     }
 
     private Notification.Builder createNotificationBuilder() {
