@@ -15,6 +15,7 @@ import com.jiexi.apppp.ui.DownloadListActivity;
 import com.jiexi.apppp.util.FileUtil;
 import com.jiexi.apppp.util.HttpUtil;
 import com.jiexi.apppp.util.Logger;
+import com.jiexi.apppp.util.MediaMerger;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,12 +65,12 @@ public class DownloadService extends Service {
 
     public synchronized int addTask(String title, String url, String qualityName,
                                      String fileExt, String bvid) {
-        return addTaskWithFallback(title, url, qualityName, fileExt, bvid, null);
+        return addTaskWithFallback(title, url, qualityName, fileExt, bvid, null, null);
     }
 
     public synchronized int addTaskWithFallback(String title, String url, String qualityName,
                                      String fileExt, String bvid,
-                                     List<String> fallbackUrls) {
+                                     List<String> fallbackUrls, String bestAudioUrl) {
         // Deduplicate: skip if same title+quality already downloading
         for (DownloadItem existing : mTaskList) {
             if (existing.title.equals(title) && existing.qualityName.equals(qualityName)) {
@@ -84,6 +85,7 @@ public class DownloadService extends Service {
         item.id = System.currentTimeMillis();
         item.title = title;
         item.url = url;
+        item.bestAudioUrl = bestAudioUrl;
         item.qualityName = qualityName;
         item.bvid = bvid;
         item.status = DownloadItem.STATUS_PENDING;
@@ -223,6 +225,11 @@ public class DownloadService extends Service {
                 item.progress = 100;
                 updateNotification(item);
                 Logger.i("Download", "完成: " + item.title + " [" + item.qualityName + "]");
+
+                // Download best audio and merge if available
+                if (item.bestAudioUrl != null && item.bestAudioUrl.length() > 0) {
+                    mergeAudio(item);
+                }
             }
 
         } catch (Exception e) {
@@ -266,6 +273,10 @@ public class DownloadService extends Service {
     }
 
     private void updateNotification(DownloadItem item) {
+        updateNotification(item, null);
+    }
+
+    private void updateNotification(DownloadItem item, String customStatus) {
         String title = item.title;
         if (title.length() > 30) {
             title = title.substring(0, 30) + "...";
@@ -301,8 +312,11 @@ public class DownloadService extends Service {
                     + "/" + FileUtil.formatSize(item.totalSize);
         }
 
+        String statusTitle = item.status == DownloadItem.STATUS_PAUSED ? "已暂停" : "下载中";
+        if (customStatus != null) statusTitle = customStatus;
+
         Notification.Builder builder = createNotificationBuilder()
-                .setContentTitle(item.status == DownloadItem.STATUS_PAUSED ? "已暂停" : "下载中")
+                .setContentTitle(statusTitle)
                 .setContentText(title)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
                 .setOngoing(true)
@@ -316,6 +330,64 @@ public class DownloadService extends Service {
         builder.setContentIntent(pi);
 
         mNotificationManager.notify(notifId, builder.build());
+    }
+
+    private void mergeAudio(DownloadItem item) {
+        String videoPath = item.filePath;
+        String audioPath = videoPath.replaceFirst("\\.[^.]+$", "_audio.m4a");
+        String mergedPath = videoPath.replaceFirst("\\.[^.]+$", "_merged.mp4");
+
+        Logger.i("Download", "开始下载音频: " + item.title);
+        updateNotification(item, "下载音频中...");
+
+        // Download audio
+        HttpURLConnection conn = null;
+        InputStream is = null;
+        FileOutputStream fos = null;
+        try {
+            File audioFile = new File(audioPath);
+            conn = HttpUtil.openDownloadConnection(item.bestAudioUrl, 0);
+            conn.connect();
+            int code = conn.getResponseCode();
+            if (code != 200 && code != 206) {
+                Logger.e("Download", "音频下载失败 HTTP " + code);
+                return;
+            }
+
+            is = conn.getInputStream();
+            fos = new FileOutputStream(audioFile, false);
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = is.read(buf)) != -1) {
+                fos.write(buf, 0, n);
+            }
+            fos.flush();
+
+            Logger.i("Download", "音频下载完成, 开始合并: " + item.title);
+            updateNotification(item, "合并音视频中...");
+
+            // Merge
+            boolean merged = MediaMerger.merge(videoPath, audioPath, mergedPath);
+            if (merged) {
+                // Replace video file with merged file
+                File videoFile = new File(videoPath);
+                videoFile.delete();
+                new File(mergedPath).renameTo(videoFile);
+                Logger.i("Download", "合并成功: " + item.title);
+            } else {
+                Logger.e("Download", "合并失败: " + item.title);
+            }
+            // Clean up audio temp
+            try { new File(audioPath).delete(); } catch (Exception ignored) {}
+
+        } catch (Exception e) {
+            Logger.e("Download", "音频下载/合并异常: " + item.title, e);
+        } finally {
+            if (fos != null) { try { fos.close(); } catch (Exception ignored) {} }
+            if (is != null) { try { is.close(); } catch (Exception ignored) {} }
+            if (conn != null) { conn.disconnect(); }
+            updateNotification(item);
+        }
     }
 
     private void createNotificationChannel() {

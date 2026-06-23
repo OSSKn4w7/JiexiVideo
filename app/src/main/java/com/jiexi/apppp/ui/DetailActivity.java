@@ -533,11 +533,25 @@ public class DetailActivity extends Activity {
         String fullPath = FileUtil.getDownloadDir().getAbsolutePath()
                 + java.io.File.separator + fileName;
 
+        // Find best audio URL
+        String bestAudioUrl = null;
+        for (VideoInfo.QualityOption a : mVideoInfo.audioQualities) {
+            if (a.qualityCode == 30280) {
+                bestAudioUrl = a.url;
+                break;
+            }
+        }
+        if (bestAudioUrl == null && mVideoInfo.audioQualities.size() > 0) {
+            bestAudioUrl = mVideoInfo.audioQualities.get(0).url;
+        }
+
         mDownloadService.addTaskWithFallback(mVideoInfo.title, opt.url,
-                opt.qualityName, ext, mVideoInfo.bvid, opt.fallbackUrls);
+                opt.qualityName, ext, mVideoInfo.bvid, opt.fallbackUrls,
+                bestAudioUrl);
         Toast.makeText(this, "已添加下载: " + opt.qualityName
                 + (opt.fallbackUrls.size() > 0 ?
                 " (" + (opt.fallbackUrls.size() + 1) + "路备选)" : "")
+                + (bestAudioUrl != null ? " +音频" : "")
                 + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 

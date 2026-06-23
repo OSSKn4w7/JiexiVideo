@@ -16,6 +16,7 @@ public class DownloadItem implements Serializable {
     public String title;
     public String qualityName;
     public String url;
+    public String bestAudioUrl;
     public String filePath;
     public String fileName;
     public long totalSize;
