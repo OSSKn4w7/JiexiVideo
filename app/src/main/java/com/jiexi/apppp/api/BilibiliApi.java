@@ -299,8 +299,13 @@ public class BilibiliApi {
             status.uname = data.optString("uname", "");
             status.face = data.optString("face", "");
             status.isVip = data.optInt("vipType", 0) >= 1;
+            // Get user level
+            JSONObject levelInfo = data.optJSONObject("level_info");
+            if (levelInfo != null) {
+                status.userLevel = levelInfo.optInt("current_level", 0);
+            }
             Logger.i("BiliApi", "用户已登录: " + status.uname
-                    + " VIP=" + status.isVip);
+                    + " VIP=" + status.isVip + " LV=" + status.userLevel);
         } else {
             Logger.i("BiliApi", "用户未登录");
         }
@@ -312,6 +317,7 @@ public class BilibiliApi {
         public boolean isLoggedIn;
         public boolean isVip;
         public long mid;
+        public int userLevel;
         public String uname;
         public String face;
     }

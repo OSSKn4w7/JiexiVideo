@@ -35,6 +35,7 @@ public class BilibiliActivity extends Activity {
     private LinearLayout mLoginStatusLayout;
     private ImageView mAvatarImage;
     private TextView mLoginStatusText;
+    private TextView mLoginLevelText;
     private LinearLayout mUserInfoCard;
     private ImageView mUserAvatar;
     private TextView mUserNameText;
@@ -82,6 +83,7 @@ public class BilibiliActivity extends Activity {
         mLoginStatusLayout = (LinearLayout) findViewById(R.id.loginStatusLayout);
         mAvatarImage = (ImageView) findViewById(R.id.avatarImage);
         mLoginStatusText = (TextView) findViewById(R.id.loginStatusText);
+        mLoginLevelText = (TextView) findViewById(R.id.loginLevelText);
         mUserInfoCard = (LinearLayout) findViewById(R.id.userInfoCard);
         mUserAvatar = (ImageView) findViewById(R.id.userAvatar);
         mUserNameText = (TextView) findViewById(R.id.userNameText);
@@ -101,7 +103,9 @@ public class BilibiliActivity extends Activity {
         mLoginStatusLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(BilibiliActivity.this, LoginActivity.class));
+                if (!mIsLoggedIn) {
+                    startActivity(new Intent(BilibiliActivity.this, LoginActivity.class));
+                }
             }
         });
 
@@ -113,8 +117,9 @@ public class BilibiliActivity extends Activity {
                 mIsVip = false;
                 mUserInfoCard.setVisibility(View.GONE);
                 mHintCard.setVisibility(View.VISIBLE);
-                mLoginStatusText.setText("未登录 (点击登录)");
-                mLoginStatusText.setTextColor(0xffaaaaaa);
+                mLoginStatusText.setText("点击登录B站");
+                mLoginStatusText.setTextColor(0xff98989d);
+                mLoginLevelText.setVisibility(View.GONE);
                 mAvatarImage.setImageResource(R.drawable.ic_launcher);
                 Toast.makeText(BilibiliActivity.this, "已退出登录", Toast.LENGTH_SHORT).show();
                 Logger.i("Bili", "用户退出登录");
@@ -149,16 +154,24 @@ public class BilibiliActivity extends Activity {
 
                             if (status.isLoggedIn) {
                                 mLoginStatusText.setText(status.uname);
-                                mLoginStatusText.setTextColor(0xff88c0ff);
+                                mLoginStatusText.setTextColor(0xffffffff);
+                                if (status.userLevel > 0) {
+                                    mLoginLevelText.setVisibility(View.VISIBLE);
+                                    mLoginLevelText.setText("LV" + status.userLevel);
+                                }
                                 updateUserCard(status);
+                                loadAvatarToBar(status.face);
                             } else if (hasCookie) {
                                 mLoginStatusText.setText("Cookie已导入");
                                 mLoginStatusText.setTextColor(0xffffcc00);
+                                mLoginLevelText.setVisibility(View.GONE);
                                 mIsLoggedIn = true;
                                 showCookieCard(status);
                             } else {
-                                mLoginStatusText.setText("未登录 (点击登录)");
-                                mLoginStatusText.setTextColor(0xffaaaaaa);
+                                mLoginStatusText.setText("点击登录B站");
+                                mLoginStatusText.setTextColor(0xff98989d);
+                                mLoginLevelText.setVisibility(View.GONE);
+                                mAvatarImage.setImageResource(R.drawable.ic_launcher);
                                 mUserInfoCard.setVisibility(View.GONE);
                                 mHintCard.setVisibility(View.VISIBLE);
                             }
@@ -171,6 +184,7 @@ public class BilibiliActivity extends Activity {
                             if (mCookieManager.hasCookie()) {
                                 mLoginStatusText.setText("Cookie已导入");
                                 mLoginStatusText.setTextColor(0xffffcc00);
+                                mLoginLevelText.setVisibility(View.GONE);
                                 mIsLoggedIn = true;
                                 showCookieCard(null);
                             }
@@ -189,20 +203,24 @@ public class BilibiliActivity extends Activity {
             mUserVipText.setVisibility(View.VISIBLE);
             mUserVipText.setText("大会员");
             mUserVipText.setTextColor(0xffffffff);
-            mUserVipText.setBackgroundDrawable(
-                    getResources().getDrawable(R.drawable.vip_badge_bg));
+            mUserVipText.setBackgroundColor(0xfffb7299);
         } else {
             mUserVipText.setVisibility(View.VISIBLE);
             mUserVipText.setText("普通用户");
             mUserVipText.setTextColor(0xff98989d);
-            mUserVipText.setBackgroundDrawable(null);
+            mUserVipText.setBackgroundColor(0x00000000);
         }
-        mUserMidText.setText("UID: " + status.mid);
+        String levelStr = "UID: " + status.mid;
+        if (status.userLevel > 0) {
+            levelStr += " · LV" + status.userLevel;
+        }
+        mUserMidText.setText(levelStr);
         mUserCookieInfo.setText("登录有效");
         if (status.face != null && status.face.length() > 0) {
             loadAvatar(status.face);
         }
-        Logger.i("Bili", "用户卡: " + status.uname + " VIP=" + status.isVip);
+        Logger.i("Bili", "用户卡: " + status.uname + " VIP=" + status.isVip
+                + " LV=" + status.userLevel);
     }
 
     private void showCookieCard(LoginStatus status) {
@@ -238,6 +256,32 @@ public class BilibiliActivity extends Activity {
                             @Override
                             public void run() {
                                 mUserAvatar.setImageBitmap(bitmap);
+                                mAvatarImage.setImageBitmap(bitmap);
+                            }
+                        });
+                    }
+                } catch (Exception ignored) {}
+            }
+        }).start();
+    }
+
+    private void loadAvatarToBar(final String url) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+                    conn.setConnectTimeout(10000);
+                    conn.setReadTimeout(10000);
+                    InputStream is = conn.getInputStream();
+                    final Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    is.close();
+                    conn.disconnect();
+                    if (bitmap != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mAvatarImage.setImageBitmap(bitmap);
                             }
                         });
                     }
