@@ -188,7 +188,9 @@ public class BilibiliActivity extends Activity {
         if (status.isVip) {
             mUserVipText.setVisibility(View.VISIBLE);
             mUserVipText.setText("大会员");
-            mUserVipText.setTextColor(0xffff6b00);
+            mUserVipText.setTextColor(0xffffffff);
+            mUserVipText.setBackgroundDrawable(
+                    getResources().getDrawable(R.drawable.btn_pink_rounded));
         } else {
             mUserVipText.setVisibility(View.VISIBLE);
             mUserVipText.setText("普通用户");
