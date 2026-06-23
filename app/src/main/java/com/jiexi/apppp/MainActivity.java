@@ -208,28 +208,12 @@ public class MainActivity extends Activity {
                         public void run() {
                             mIsLoggedIn = status.isLoggedIn;
                             mIsVip = status.isVip;
-
                             mCookieManager.setVip(status.isVip);
 
                             if (status.isLoggedIn) {
                                 mLoginStatusText.setText(status.uname);
                                 mLoginStatusText.setTextColor(0xff88c0ff);
                                 updateUserCard(status);
-                                if (hasCookie) {
-                                    mCookieManager.setVip(status.isVip);
-    }
-
-    private void showError(final String msg) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                mLoadingLayout.setVisibility(View.GONE);
-                mBtnParse.setEnabled(true);
-                mErrorText.setText(msg);
-                mErrorText.setVisibility(View.VISIBLE);
-            }
-        });
-    }
                             } else if (hasCookie) {
                                 mLoginStatusText.setText("Cookie 已导入");
                                 mLoginStatusText.setTextColor(0xffffcc00);
