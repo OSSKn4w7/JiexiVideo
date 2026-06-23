@@ -29,6 +29,20 @@ public class HttpUtil {
     }
 
     public static String get(String urlStr, Map<String, String> headers) throws IOException {
+        return getInternal(urlStr, headers, true);
+    }
+
+    /**
+     * GET request WITHOUT updating the global cookie from response headers.
+     * Use this for endpoints that may return guest credentials (e.g. WBI key init).
+     */
+    public static String getWithoutCookieUpdate(String urlStr, Map<String, String> headers)
+            throws IOException {
+        return getInternal(urlStr, headers, false);
+    }
+
+    private static String getInternal(String urlStr, Map<String, String> headers,
+                                       boolean updateCookie) throws IOException {
         HttpURLConnection conn = null;
         try {
             URL url = new URL(urlStr);
@@ -53,33 +67,34 @@ public class HttpUtil {
             int code = conn.getResponseCode();
             if (code == 301 || code == 302) {
                 String location = conn.getHeaderField("Location");
-                return get(location, headers);
+                return getInternal(location, headers, updateCookie);
             }
 
-            // Update cookies from response
-            List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
-            if (setCookies != null) {
-                StringBuilder cookieBuilder = new StringBuilder(sGlobalCookie);
-                for (String sc : setCookies) {
-                    if (sc != null) {
-                        String[] parts = sc.split(";");
-                        if (parts.length > 0) {
-                            String kv = parts[0].trim();
-                            String key = kv.split("=", 2)[0];
-                            // Remove existing key from cookie
-                            int idx = cookieBuilder.indexOf(key + "=");
-                            if (idx >= 0) {
-                                int end = cookieBuilder.indexOf(";", idx);
-                                if (end < 0) end = cookieBuilder.length();
-                                cookieBuilder.replace(idx, end, kv);
-                            } else {
-                                if (cookieBuilder.length() > 0) cookieBuilder.append("; ");
-                                cookieBuilder.append(kv);
+            if (updateCookie) {
+                // Update cookies from response
+                List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
+                if (setCookies != null) {
+                    StringBuilder cookieBuilder = new StringBuilder(sGlobalCookie);
+                    for (String sc : setCookies) {
+                        if (sc != null) {
+                            String[] parts = sc.split(";");
+                            if (parts.length > 0) {
+                                String kv = parts[0].trim();
+                                String key = kv.split("=", 2)[0];
+                                int idx = cookieBuilder.indexOf(key + "=");
+                                if (idx >= 0) {
+                                    int end = cookieBuilder.indexOf(";", idx);
+                                    if (end < 0) end = cookieBuilder.length();
+                                    cookieBuilder.replace(idx, end, kv);
+                                } else {
+                                    if (cookieBuilder.length() > 0) cookieBuilder.append("; ");
+                                    cookieBuilder.append(kv);
+                                }
                             }
                         }
                     }
+                    sGlobalCookie = cookieBuilder.toString();
                 }
-                sGlobalCookie = cookieBuilder.toString();
             }
 
             return readStream(conn);

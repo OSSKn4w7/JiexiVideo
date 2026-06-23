@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jiexi.apppp.util.LinkExtractor;
+import com.jiexi.apppp.util.Logger;
 import com.jiexi.apppp.api.BilibiliApi;
 import com.jiexi.apppp.api.BilibiliApi.LoginStatus;
 import com.jiexi.apppp.api.DouyinApi;
@@ -193,8 +194,17 @@ public class MainActivity extends Activity {
             return;
         }
 
+        // Dev mode trigger
+        if ("开发者模式".equals(input)) {
+            showLogViewer();
+            return;
+        }
+
         // Auto-extract clean URL from pasted share text
         final String cleanUrl = LinkExtractor.extract(input);
+        Logger.i("Main", "原始输入长度=" + input.length()
+                + " 提取URL=" + (cleanUrl != null ? cleanUrl : "null"));
+
         if (cleanUrl == null) {
             showError("未识别到有效的视频链接");
             return;
@@ -202,6 +212,9 @@ public class MainActivity extends Activity {
 
         // Auto-detect platform from extracted URL
         final int detectedPlatform = LinkExtractor.detectPlatform(cleanUrl);
+        Logger.i("Main", "检测平台=" + (detectedPlatform == VideoInfo.PLATFORM_BILIBILI
+                ? "B站" : detectedPlatform == VideoInfo.PLATFORM_DOUYIN ? "抖音" : "未知")
+                + " 登录态=" + mIsLoggedIn + " VIP=" + mIsVip);
 
         mErrorText.setVisibility(View.GONE);
         mLoadingLayout.setVisibility(View.VISIBLE);
@@ -213,9 +226,11 @@ public class MainActivity extends Activity {
                 try {
                     final VideoInfo[] infoRef = new VideoInfo[1];
                     if (detectedPlatform == VideoInfo.PLATFORM_DOUYIN) {
+                        Logger.i("Main", "开始解析抖音: " + cleanUrl);
                         infoRef[0] = DouyinApi.parseVideo(cleanUrl);
                     } else {
                         String bvid = BilibiliApi.extractBvid(cleanUrl);
+                        Logger.i("Main", "B站 bvid=" + bvid);
                         if (bvid == null || bvid.length() < 10) {
                             showError("无法识别B站视频ID");
                             return;
@@ -223,6 +238,7 @@ public class MainActivity extends Activity {
                         infoRef[0] = BilibiliApi.fetchVideoInfo(bvid);
                         BilibiliApi.fetchPlayUrls(infoRef[0]);
                         BilibiliApi.fetchSubtitles(infoRef[0]);
+                        Logger.i("Main", "B站解析成功: " + infoRef[0].title);
                     }
 
                     runOnUiThread(new Runnable() {
@@ -240,6 +256,7 @@ public class MainActivity extends Activity {
                         }
                     });
                 } catch (final Exception e) {
+                    Logger.e("Main", "解析失败", e);
                     showError(e.getMessage());
                 }
             }
@@ -256,5 +273,57 @@ public class MainActivity extends Activity {
                 mErrorText.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private void showLogViewer() {
+        final android.app.AlertDialog.Builder builder =
+                new android.app.AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("开发者日志");
+
+        final String logs = Logger.getLogsAsString();
+        if (logs.length() == 0) {
+            builder.setMessage("暂无日志记录");
+        } else {
+            final android.widget.ScrollView scrollView = new android.widget.ScrollView(this);
+            final TextView logView = new TextView(this);
+            logView.setText(logs);
+            logView.setTextSize(11);
+            logView.setTextColor(0xff00ff00);
+            logView.setBackgroundColor(0xff000000);
+            logView.setPadding(16, 16, 16, 16);
+            logView.setHorizontallyScrolling(true);
+            scrollView.addView(logView);
+            builder.setView(scrollView);
+        }
+
+        builder.setPositiveButton("保存到文件",
+                new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                final String path = Logger.saveToFile();
+                if (path != null) {
+                    Toast.makeText(MainActivity.this,
+                            "日志已保存: " + path, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this,
+                            "保存失败", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("清除日志",
+                new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                Logger.clear();
+                Toast.makeText(MainActivity.this,
+                        "日志已清除", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNeutralButton("关闭", null);
+        builder.show();
+
+        Logger.i("Main", "打开日志查看器");
     }
 }

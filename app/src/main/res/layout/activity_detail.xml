@@ -24,8 +24,8 @@
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop" />
 
-            <!-- VideoView for 720P preview -->
-            <VideoView
+            <!-- SurfaceView for 720P preview -->
+            <SurfaceView
                 android:id="@+id/previewVideo"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

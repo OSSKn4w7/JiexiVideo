@@ -15,6 +15,8 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Gravity;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -23,7 +25,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.jiexi.apppp.R;
 import com.jiexi.apppp.api.VideoInfo;
@@ -31,10 +32,13 @@ import com.jiexi.apppp.api.VideoInfo.QualityOption;
 import com.jiexi.apppp.api.VideoInfo.SubtitleOption;
 import com.jiexi.apppp.download.DownloadService;
 import com.jiexi.apppp.util.FileUtil;
+import com.jiexi.apppp.util.Logger;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DetailActivity extends Activity {
 
@@ -44,7 +48,7 @@ public class DetailActivity extends Activity {
 
     private FrameLayout mPreviewFrame;
     private ImageView mThumbnailImage;
-    private VideoView mPreviewVideo;
+    private SurfaceView mPreviewVideo;
     private View mPlayOverlay;
     private Button mBtnPlay;
     private TextView mTitleText;
@@ -66,6 +70,7 @@ public class DetailActivity extends Activity {
 
     private String m720pUrl;
     private boolean mPreviewPlaying;
+    private MediaPlayer mMediaPlayer;
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
@@ -119,7 +124,7 @@ public class DetailActivity extends Activity {
     private void initViews() {
         mPreviewFrame = (FrameLayout) findViewById(R.id.previewFrame);
         mThumbnailImage = (ImageView) findViewById(R.id.thumbnailImage);
-        mPreviewVideo = (VideoView) findViewById(R.id.previewVideo);
+        mPreviewVideo = (SurfaceView) findViewById(R.id.previewVideo);
         mPlayOverlay = findViewById(R.id.playOverlay);
         mBtnPlay = (Button) findViewById(R.id.btnPlay);
         mTitleText = (TextView) findViewById(R.id.titleText);
@@ -176,8 +181,9 @@ public class DetailActivity extends Activity {
     }
 
     private void startPreview() {
-        if (m720pUrl == null) {
+        if (m720pUrl == null || m720pUrl.length() == 0) {
             Toast.makeText(this, "无可用预览流", Toast.LENGTH_SHORT).show();
+            Logger.e("Detail", "预览失败: 无720P流地址");
             return;
         }
 
@@ -185,39 +191,70 @@ public class DetailActivity extends Activity {
         mThumbnailImage.setVisibility(View.GONE);
         mPreviewVideo.setVisibility(View.VISIBLE);
         mPreviewPlaying = true;
+        mBtnPlay.setText("■");
 
-        mPreviewVideo.setVideoURI(Uri.parse(m720pUrl));
+        Logger.i("Detail", "开始加载预览: " + m720pUrl);
 
-        mPreviewVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mp.start();
-            }
-        });
+        mMediaPlayer = new MediaPlayer();
+        try {
+            Map<String, String> headers = new HashMap<String, String>();
+            headers.put("Referer", "https://www.bilibili.com");
+            headers.put("User-Agent",
+                    "Mozilla/5.0 (Linux; Android 8.0) AppleWebKit/537.36 (KHTML, like Gecko)");
 
-        mPreviewVideo.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                Toast.makeText(DetailActivity.this,
-                        "播放失败，请尝试下载", Toast.LENGTH_SHORT).show();
-                stopPreview();
-                return true;
-            }
-        });
+            mMediaPlayer.setDataSource(this, Uri.parse(m720pUrl), headers);
+            mMediaPlayer.setDisplay(mPreviewVideo.getHolder());
+            mMediaPlayer.setScreenOnWhilePlaying(true);
 
-        mPreviewVideo.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                stopPreview();
-            }
-        });
+            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    Logger.i("Detail", "预览流就绪, 开始播放");
+                    mp.start();
+                }
+            });
 
-        mPreviewVideo.start();
+            mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    Logger.e("Detail", "预览播放失败 what=" + what + " extra=" + extra);
+                    Toast.makeText(DetailActivity.this,
+                            "播放失败(code:" + extra + "), 请尝试下载",
+                            Toast.LENGTH_SHORT).show();
+                    stopPreview();
+                    return true;
+                }
+            });
+
+            mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    Logger.i("Detail", "预览播放完成");
+                    stopPreview();
+                }
+            });
+
+            mMediaPlayer.prepareAsync();
+
+        } catch (final Exception e) {
+            Logger.e("Detail", "预览异常", e);
+            Toast.makeText(this, "播放失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            stopPreview();
+        }
     }
 
     private void stopPreview() {
         mPreviewPlaying = false;
-        mPreviewVideo.stopPlayback();
+        mBtnPlay.setText("▶");
+        if (mMediaPlayer != null) {
+            try {
+                mMediaPlayer.stop();
+            } catch (Exception ignored) {}
+            try {
+                mMediaPlayer.release();
+            } catch (Exception ignored) {}
+            mMediaPlayer = null;
+        }
         mPreviewVideo.setVisibility(View.GONE);
         mThumbnailImage.setVisibility(View.VISIBLE);
         mPlayOverlay.setVisibility(View.VISIBLE);
@@ -247,10 +284,15 @@ public class DetailActivity extends Activity {
         // Find 720P URL for preview
         m720pUrl = findBestPreviewUrl();
 
-        // Show all qualities — the API already filtered by cookie
+        // Show all qualities
         int totalCount = mVideoInfo.videoQualities.size()
                 + mVideoInfo.audioQualities.size();
         mQualityCountText.setText(totalCount + " 项");
+
+        Logger.i("Detail", "视频画质: " + mVideoInfo.videoQualities.size()
+                + "个, 音频: " + mVideoInfo.audioQualities.size()
+                + "个, 字幕: " + mVideoInfo.subtitles.size()
+                + "个, 720P预览: " + (m720pUrl != null ? "有" : "无"));
 
         // Show login hint if user isn't logged in
         if (!mIsLoggedIn && mVideoInfo.platform == VideoInfo.PLATFORM_BILIBILI) {

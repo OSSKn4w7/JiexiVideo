@@ -3,6 +3,7 @@ package com.jiexi.apppp.api;
 import android.util.Log;
 
 import com.jiexi.apppp.util.HttpUtil;
+import com.jiexi.apppp.util.Logger;
 import com.jiexi.apppp.util.WbiSignUtil;
 
 import org.json.JSONArray;
@@ -145,6 +146,8 @@ public class BilibiliApi {
         String query = WbiSignUtil.signParams(params);
         String url = "https://api.bilibili.com/x/player/wbi/playurl?" + query;
 
+        Logger.i("BiliApi", "请求播放地址: cookie长度="
+                + HttpUtil.getGlobalCookie().length());
         String resp = HttpUtil.get(url);
         JSONObject json = new JSONObject(resp);
         JSONObject data = json.getJSONObject("data");
@@ -152,6 +155,8 @@ public class BilibiliApi {
         // Get accepted quality list for reference
         JSONArray acceptQn = data.optJSONArray("accept_quality");
         JSONArray acceptDesc = data.optJSONArray("accept_description");
+        Logger.i("BiliApi", "playurl code=" + json.getInt("code")
+                + " 可选画质数=" + (acceptQn != null ? acceptQn.length() : 0));
 
         Map<Integer, String> qualityMap = new HashMap<Integer, String>();
         if (acceptQn != null && acceptDesc != null) {
@@ -229,6 +234,9 @@ public class BilibiliApi {
                 }
             }
         }
+
+        Logger.i("BiliApi", "解析完成: 视频流=" + info.videoQualities.size()
+                + "个 音频流=" + info.audioQualities.size() + "个");
     }
 
     /**
@@ -285,6 +293,10 @@ public class BilibiliApi {
             status.uname = data.optString("uname", "");
             status.face = data.optString("face", "");
             status.isVip = data.optInt("vipType", 0) == 2;
+            Logger.i("BiliApi", "用户已登录: " + status.uname
+                    + " VIP=" + status.isVip);
+        } else {
+            Logger.i("BiliApi", "用户未登录");
         }
 
         return status;

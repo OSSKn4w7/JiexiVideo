@@ -23,7 +23,8 @@ public class WbiSignUtil {
     public static void init() {
         if (sInited) return;
         try {
-            String resp = HttpUtil.get("https://api.bilibili.com/x/web-interface/nav");
+            String resp = HttpUtil.getWithoutCookieUpdate(
+                    "https://api.bilibili.com/x/web-interface/nav", null);
             JSONObject json = new JSONObject(resp);
             JSONObject data = json.getJSONObject("data");
             JSONObject wbiImg = data.getJSONObject("wbi_img");
