@@ -165,34 +165,35 @@ public class HttpUtil {
     }
 
     public static String resolveRedirectUrl(String urlStr) throws IOException {
-        HttpURLConnection conn = null;
-        try {
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setInstanceFollowRedirects(false);
-            conn.setConnectTimeout(5000);
-            conn.setReadTimeout(5000);
-            conn.setRequestProperty("User-Agent",
-                    "Mozilla/5.0 (Linux; Android 8.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
-            conn.connect();
-            int code = conn.getResponseCode();
-            if (code == 301 || code == 302 || code == 307 || code == 308) {
-                String location = conn.getHeaderField("Location");
-                if (location != null) {
-                    // Handle relative URLs
+        String current = urlStr;
+        for (int hop = 0; hop < 8; hop++) {
+            HttpURLConnection conn = null;
+            try {
+                URL url = new URL(current);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setInstanceFollowRedirects(false);
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Linux; Android 8.0; Pixel 2) AppleWebKit/537.36 "
+                        + "(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
+                conn.connect();
+                int code = conn.getResponseCode();
+                if (code == 301 || code == 302 || code == 307 || code == 308) {
+                    String location = conn.getHeaderField("Location");
+                    if (location == null) break;
                     if (location.startsWith("/")) {
-                        URL base = new URL(urlStr);
-                        location = base.getProtocol() + "://" + base.getHost() + location;
+                        location = url.getProtocol() + "://" + url.getHost() + location;
                     }
-                    return location;
+                    current = location;
+                } else {
+                    break;
                 }
-            }
-            return urlStr;
-        } finally {
-            if (conn != null) {
-                conn.disconnect();
+            } finally {
+                if (conn != null) conn.disconnect();
             }
         }
+        return current;
     }
 
     private static String readStream(HttpURLConnection conn) throws IOException {

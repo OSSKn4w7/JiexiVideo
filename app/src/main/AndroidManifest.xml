@@ -30,6 +30,16 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.BilibiliActivity"
+            android:label="哔哩哔哩"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.DouyinActivity"
+            android:label="抖音"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.LoginActivity"
             android:label="登录"
             android:exported="false" />

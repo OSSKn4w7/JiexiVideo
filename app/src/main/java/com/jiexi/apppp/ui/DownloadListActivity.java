@@ -28,6 +28,7 @@ import java.util.List;
 
 public class DownloadListActivity extends Activity {
 
+    private int mPlatform = -1; // -1 = show all, otherwise filter by platform
     private ListView mListView;
     private LinearLayout mEmptyLayout;
     private DownloadAdapter mAdapter;
@@ -56,6 +57,8 @@ public class DownloadListActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_download_list);
+
+        mPlatform = getIntent().getIntExtra("platform", -1);
 
         mListView = (ListView) findViewById(R.id.downloadListView);
         mEmptyLayout = (LinearLayout) findViewById(R.id.emptyLayout);
@@ -118,7 +121,18 @@ public class DownloadListActivity extends Activity {
     private void refreshList() {
         if (mDownloadService == null) return;
 
-        List<DownloadItem> tasks = mDownloadService.getAllTasks();
+        List<DownloadItem> all = mDownloadService.getAllTasks();
+        List<DownloadItem> tasks;
+        if (mPlatform >= 0) {
+            tasks = new ArrayList<DownloadItem>();
+            for (DownloadItem item : all) {
+                if (item.platform == mPlatform) {
+                    tasks.add(item);
+                }
+            }
+        } else {
+            tasks = all;
+        }
         mAdapter.setData(tasks);
 
         if (tasks.isEmpty()) {

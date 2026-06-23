@@ -65,12 +65,14 @@ public class DownloadService extends Service {
 
     public synchronized int addTask(String title, String url, String qualityName,
                                      String fileExt, String bvid) {
-        return addTaskWithFallback(title, url, qualityName, fileExt, bvid, null, null);
+        return addTaskWithFallback(title, url, qualityName, fileExt, bvid, null, null,
+                com.jiexi.apppp.api.VideoInfo.PLATFORM_BILIBILI);
     }
 
     public synchronized int addTaskWithFallback(String title, String url, String qualityName,
                                      String fileExt, String bvid,
-                                     List<String> fallbackUrls, String bestAudioUrl) {
+                                     List<String> fallbackUrls, String bestAudioUrl,
+                                     int platform) {
         // Deduplicate: skip if same title+quality already downloading
         for (DownloadItem existing : mTaskList) {
             if (existing.title.equals(title) && existing.qualityName.equals(qualityName)) {
@@ -86,6 +88,7 @@ public class DownloadService extends Service {
         item.title = title;
         item.url = url;
         item.bestAudioUrl = bestAudioUrl;
+        item.platform = platform;
         item.qualityName = qualityName;
         item.bvid = bvid;
         item.status = DownloadItem.STATUS_PENDING;

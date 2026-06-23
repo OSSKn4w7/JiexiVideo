@@ -547,7 +547,7 @@ public class DetailActivity extends Activity {
 
         mDownloadService.addTaskWithFallback(mVideoInfo.title, opt.url,
                 opt.qualityName, ext, mVideoInfo.bvid, opt.fallbackUrls,
-                bestAudioUrl);
+                bestAudioUrl, VideoInfo.PLATFORM_BILIBILI);
         Toast.makeText(this, "已添加下载: " + opt.qualityName
                 + (opt.fallbackUrls.size() > 0 ?
                 " (" + (opt.fallbackUrls.size() + 1) + "路备选)" : "")
@@ -569,6 +569,7 @@ public class DetailActivity extends Activity {
         mDownloadService.addTask(mVideoInfo.title, opt.url,
                 "仅音频_" + opt.qualityName, ".m4a", mVideoInfo.bvid);
         Toast.makeText(this, "已添加音频: " + opt.qualityName
+                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
                 + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 

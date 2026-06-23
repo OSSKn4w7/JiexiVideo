@@ -37,13 +37,14 @@ public class DouyinApi {
     private static String extractVideoId(String url) {
         if (url == null) return null;
 
-        // Pattern: /video/123456... or /note/...
-        String[] patterns = {"/video/", "/note/"};
+        // Pattern: /video/123456... or /note/... or modal_id=...
+        String[] patterns = {"/video/", "/note/", "modal_id=", "video/"};
 
-        for (String p : patterns) {
-            int idx = url.indexOf(p);
+        for (int p = 0; p < patterns.length; p++) {
+            String pat = patterns[p];
+            int idx = url.indexOf(pat);
             if (idx >= 0) {
-                String rest = url.substring(idx + p.length());
+                String rest = url.substring(idx + pat.length());
                 int end = rest.length();
                 for (int i = 0; i < rest.length(); i++) {
                     char c = rest.charAt(i);

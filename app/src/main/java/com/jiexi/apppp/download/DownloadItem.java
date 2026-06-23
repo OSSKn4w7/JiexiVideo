@@ -12,6 +12,7 @@ public class DownloadItem implements Serializable {
     public static final int STATUS_FAILED = 4;
 
     public long id;
+    public int platform; // VideoInfo.PLATFORM_BILIBILI or PLATFORM_DOUYIN
     public String bvid;
     public String title;
     public String qualityName;
