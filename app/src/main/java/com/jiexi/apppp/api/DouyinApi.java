@@ -27,23 +27,94 @@ public class DouyinApi {
     public static VideoInfo parseVideo(String shareUrl) throws Exception {
         Logger.i("DouyinApi", "解析: " + shareUrl);
 
-        // Strategy 1: Resolve redirect with full mobile headers
+        // Strategy 1: Try to resolve redirect via text scan
         String realUrl = resolveDouyinRedirect(shareUrl);
         Logger.i("DouyinApi", "重定向结果: " + realUrl);
 
         String videoId = extractVideoId(realUrl);
 
-        // Strategy 2: If redirect gave bare domain, try direct API with share URL
+        // Strategy 2: Use cookie-based double request
         if (videoId == null && shareUrl.contains("v.douyin.com/")) {
+            videoId = resolveViaWebApi(shareUrl);
+        }
+
+        // Strategy 3: Search in share page HTML
+        if (videoId == null) {
             videoId = resolveViaShareApi(shareUrl);
         }
 
         if (videoId == null) {
-            throw new Exception("无法解析抖音视频ID (URL=" + realUrl + ")");
+            throw new Exception("无法解析抖音视频ID");
         }
 
         Logger.i("DouyinApi", "videoId=" + videoId);
         return fetchVideoInfo(videoId);
+    }
+
+    /**
+     * Try to resolve via cookie-based double-request trick.
+     */
+    private static String resolveViaWebApi(String shareUrl) {
+        try {
+            int idx = shareUrl.indexOf("v.douyin.com/");
+            if (idx < 0) return null;
+            String code = shareUrl.substring(idx + "v.douyin.com/".length())
+                    .replaceAll("[^a-zA-Z0-9].*", "");
+            if (code.length() < 4) return null;
+
+            // Request 1: get cookies
+            java.net.HttpURLConnection conn = null;
+            try {
+                java.net.URL url = new java.net.URL(shareUrl);
+                conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setInstanceFollowRedirects(false);
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Linux; Android 13; SM-S9080) AppleWebKit/537.36 "
+                        + "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+                conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9");
+                conn.connect();
+
+                java.util.List<String> setCookies = conn.getHeaderFields().get("Set-Cookie");
+                conn.disconnect();
+                conn = null;
+
+                if (setCookies != null && setCookies.size() > 0) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < setCookies.size(); i++) {
+                        String sc = setCookies.get(i);
+                        if (sc != null) {
+                            String kv = sc.split(";")[0].trim();
+                            if (sb.length() > 0) sb.append("; ");
+                            sb.append(kv);
+                        }
+                    }
+                    String cookieHeader = sb.toString();
+                    Logger.i("DouyinApi", "Cookie重定向: len=" + cookieHeader.length());
+
+                    url = new java.net.URL(shareUrl);
+                    conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setInstanceFollowRedirects(true);
+                    conn.setConnectTimeout(8000);
+                    conn.setReadTimeout(8000);
+                    conn.setRequestProperty("User-Agent",
+                            "Mozilla/5.0 (Linux; Android 13; SM-S9080) AppleWebKit/537.36 "
+                            + "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+                    conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9");
+                    conn.setRequestProperty("Cookie", cookieHeader);
+                    conn.connect();
+                    String finalUrl = conn.getURL().toString();
+                    Logger.i("DouyinApi", "Cookie后: " + finalUrl);
+                    return finalUrl;
+                }
+            } finally {
+                if (conn != null) conn.disconnect();
+            }
+        } catch (Exception e) {
+            Logger.e("DouyinApi", "WebAPI失败", e);
+        }
+        return null;
     }
 
     /**
