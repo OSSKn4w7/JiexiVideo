@@ -153,6 +153,7 @@ public class HttpUtil {
         conn.setReadTimeout(READ_TIMEOUT);
         conn.setRequestProperty("User-Agent",
                 "Mozilla/5.0 (Linux; Android 8.0; Pixel 2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
+        conn.setRequestProperty("Referer", "https://www.bilibili.com/");
         if (sGlobalCookie.length() > 0) {
             conn.setRequestProperty("Cookie", sGlobalCookie);
         }

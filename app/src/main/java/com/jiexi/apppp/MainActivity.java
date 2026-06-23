@@ -332,7 +332,9 @@ public class MainActivity extends Activity {
             mUserVipText.setText("大会员");
             mUserVipText.setTextColor(0xffff6b00);
         } else {
-            mUserVipText.setVisibility(View.GONE);
+            mUserVipText.setVisibility(View.VISIBLE);
+            mUserVipText.setText("普通用户");
+            mUserVipText.setTextColor(0xff888888);
         }
 
         mUserMidText.setText("UID: " + status.mid);

@@ -227,15 +227,19 @@ public class DetailActivity extends Activity {
         try {
             final Map<String, String> headers = new HashMap<String, String>();
             headers.put("Referer", "https://www.bilibili.com");
+            headers.put("Origin", "https://www.bilibili.com");
             headers.put("User-Agent",
                     "Mozilla/5.0 (Linux; Android 8.0) AppleWebKit/537.36 (KHTML, like Gecko)");
 
+            Logger.i("Detail", "setDataSource url=" + m720pUrl.substring(0,
+                    Math.min(80, m720pUrl.length())));
             mMediaPlayer.setDataSource(this, Uri.parse(m720pUrl), headers);
 
             mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    Logger.i("Detail", "预览流就绪, 开始播放");
+                    Logger.i("Detail", "预览流就绪, 开始播放 width="
+                            + mp.getVideoWidth() + "x" + mp.getVideoHeight());
                     // SurfaceView keeps its surface (outside ScrollView), safe to play
                     mp.setDisplay(mPreviewVideo.getHolder());
                     mp.start();
@@ -254,6 +258,15 @@ public class DetailActivity extends Activity {
                 }
             });
 
+            mMediaPlayer.setOnInfoListener(new MediaPlayer.OnInfoListener() {
+                @Override
+                public boolean onInfo(MediaPlayer mp, int what, int extra) {
+                    Logger.i("Detail", "预览 onInfo what=" + what
+                            + " extra=" + extra);
+                    return false;
+                }
+            });
+
             mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
@@ -263,7 +276,9 @@ public class DetailActivity extends Activity {
             });
 
             mMediaPlayer.setScreenOnWhilePlaying(true);
+            Logger.i("Detail", "prepareAsync开始");
             mMediaPlayer.prepareAsync();
+            Logger.i("Detail", "prepareAsync已调用");
 
         } catch (final Exception e) {
             Logger.e("Detail", "预览异常", e);
@@ -384,9 +399,11 @@ public class DetailActivity extends Activity {
         if (opt.needsAuth) {
             displayName = displayName + "  " + (mIsVip ? "" : "(需登录)");
         }
+        // Add codec info to differentiate duplicate quality names
+        displayName = displayName + " [" + codecLabel(opt.format) + "]";
         nameText.setText(displayName);
 
-        String infoStr = opt.format.toUpperCase();
+        String infoStr = codecFull(opt.format);
         if (opt.fileSize > 0) {
             infoStr += "  ~" + FileUtil.formatSize(opt.fileSize);
         }
@@ -588,5 +605,19 @@ public class DetailActivity extends Activity {
             return String.format("%.1f万", count / 10000.0);
         }
         return String.valueOf(count);
+    }
+
+    private static String codecLabel(String codecs) {
+        if (codecs == null) return "";
+        String lower = codecs.toLowerCase();
+        if (lower.contains("av1")) return "AV1";
+        if (lower.contains("hevc") || lower.contains("hvc1")) return "HEVC";
+        if (lower.contains("avc") || lower.contains("h264")) return "AVC";
+        return "";
+    }
+
+    private static String codecFull(String codecs) {
+        if (codecs == null || codecs.length() == 0) return "";
+        return codecs.toUpperCase();
     }
 }
