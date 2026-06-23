@@ -570,7 +570,6 @@ public class DetailActivity extends Activity {
                 "仅音频_" + opt.qualityName, ".m4a", mVideoInfo.bvid);
         Toast.makeText(this, "已添加音频: " + opt.qualityName
                 + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
-                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
     }
 
     private void startSubtitleDownload(SubtitleOption sub) {

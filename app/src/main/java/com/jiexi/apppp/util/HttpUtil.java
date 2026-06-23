@@ -165,9 +165,33 @@ public class HttpUtil {
     }
 
     public static String resolveRedirectUrl(String urlStr) throws IOException {
+        // Try Java's built-in redirect following first (handles multi-hop correctly)
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(urlStr);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setInstanceFollowRedirects(true);
+            conn.setConnectTimeout(8000);
+            conn.setReadTimeout(8000);
+            conn.setRequestProperty("User-Agent",
+                    "Mozilla/5.0 (Linux; Android 8.0; Pixel 2) AppleWebKit/537.36 "
+                    + "(KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36");
+            conn.setRequestMethod("GET");
+            conn.connect();
+            String finalUrl = conn.getURL().toString();
+            if (finalUrl != null && !finalUrl.equals(urlStr)) {
+                return finalUrl;
+            }
+        } catch (Exception e) {
+            // Fall back to manual loop
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+
+        // Manual loop fallback
         String current = urlStr;
         for (int hop = 0; hop < 8; hop++) {
-            HttpURLConnection conn = null;
+            conn = null;
             try {
                 URL url = new URL(current);
                 conn = (HttpURLConnection) url.openConnection();

@@ -101,6 +101,12 @@ public class DouyinActivity extends Activity {
             return;
         }
 
+        // Dev mode
+        if ("开发者模式".equals(input)) {
+            showLogViewer();
+            return;
+        }
+
         final String cleanUrl = LinkExtractor.extract(input);
         Logger.i("Douyin", "提取URL=" + cleanUrl);
         if (cleanUrl == null) {
@@ -163,5 +169,58 @@ public class DouyinActivity extends Activity {
                 mErrorText.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private void showLogViewer() {
+        final android.app.AlertDialog.Builder builder =
+                new android.app.AlertDialog.Builder(DouyinActivity.this);
+        builder.setTitle("开发者日志");
+        final String logs = Logger.getLogsAsString();
+        if (logs.length() == 0) {
+            builder.setMessage("暂无日志记录");
+        } else {
+            final android.widget.ScrollView sv = new android.widget.ScrollView(this);
+            final TextView tv = new TextView(this);
+            tv.setText(logs);
+            tv.setTextSize(11);
+            tv.setTextColor(0xff00ff00);
+            tv.setBackgroundColor(0xff000000);
+            tv.setPadding(16, 16, 16, 16);
+            tv.setHorizontallyScrolling(true);
+            sv.addView(tv);
+            builder.setView(sv);
+        }
+        builder.setPositiveButton("保存到文件",
+                new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                String path = Logger.saveToFile();
+                if (path != null) {
+                    Toast.makeText(DouyinActivity.this,
+                            "日志已保存:\n" + path, Toast.LENGTH_LONG).show();
+                } else {
+                    try {
+                        Intent si = new Intent(Intent.ACTION_SEND);
+                        si.setType("text/plain");
+                        si.putExtra(Intent.EXTRA_TEXT, Logger.getLogsAsString());
+                        si.putExtra(Intent.EXTRA_SUBJECT, "解析App日志");
+                        startActivity(Intent.createChooser(si, "保存日志"));
+                    } catch (Exception ex) {
+                        Toast.makeText(DouyinActivity.this, "保存失败", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
+        builder.setNegativeButton("清除日志",
+                new android.content.DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(android.content.DialogInterface dialog, int which) {
+                Logger.clear();
+                Toast.makeText(DouyinActivity.this, "日志已清除", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNeutralButton("关闭", null);
+        builder.show();
+        Logger.i("Douyin", "打开日志查看器");
     }
 }

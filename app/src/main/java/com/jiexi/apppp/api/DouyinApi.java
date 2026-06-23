@@ -1,6 +1,7 @@
 package com.jiexi.apppp.api;
 
 import com.jiexi.apppp.util.HttpUtil;
+import com.jiexi.apppp.util.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -25,8 +26,10 @@ public class DouyinApi {
     public static VideoInfo parseVideo(String shareUrl) throws Exception {
         // Follow redirects to get the real video page URL
         String realUrl = HttpUtil.resolveRedirectUrl(shareUrl);
+        Logger.i("DouyinApi", "重定向: " + shareUrl + " → " + realUrl);
         // Extract video id
         String videoId = extractVideoId(realUrl);
+        Logger.i("DouyinApi", "提取videoId: " + videoId + " from " + realUrl);
         if (videoId == null) {
             throw new Exception("无法解析抖音视频ID");
         }
