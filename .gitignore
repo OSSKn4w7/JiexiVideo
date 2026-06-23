@@ -3,6 +3,9 @@
 /app/build
 /builds
 
+# Generated files (AIDE Pro regenerates these on build)
+app/build/gen/
+
 # Gradle cache
 .gradle/
 gradle-app.setting
