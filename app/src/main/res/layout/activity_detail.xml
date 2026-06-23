@@ -3,14 +3,14 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0f0f0f">
+    android:background="#08080c">
 
-    <!-- Fixed preview area (outside ScrollView to prevent surface destruction) -->
+    <!-- Fixed preview -->
     <FrameLayout
         android:id="@+id/previewFrame"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:background="#1a1a1a">
+        android:background="#0c0c14">
 
         <ImageView
             android:id="@+id/thumbnailImage"
@@ -35,24 +35,24 @@
 
             <Button
                 android:id="@+id/btnPlay"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
+                android:layout_width="68dp"
+                android:layout_height="68dp"
                 android:text="▶"
-                android:textSize="24sp"
+                android:textSize="26sp"
                 android:textColor="#ffffff"
-                android:background="#cc000000" />
+                android:background="@drawable/glass_card" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:text="点击预览 720P"
-                android:textColor="#cccccc"
+                android:textColor="#98989d"
                 android:textSize="12sp" />
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Scrollable content below preview -->
+    <!-- Scrollable content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -62,7 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="18dp">
 
             <!-- Title -->
             <TextView
@@ -70,16 +70,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="#ffffff"
-                android:textSize="17sp"
+                android:textSize="18sp"
                 android:textStyle="bold"
                 android:maxLines="3"
                 android:ellipsize="end" />
 
-            <!-- Author and stats row -->
+            <!-- Author + duration row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
@@ -88,14 +88,14 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="#aaaaaa"
+                    android:textColor="#98989d"
                     android:textSize="13sp" />
 
                 <TextView
                     android:id="@+id/durationText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#888888"
+                    android:textColor="#6e6e73"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -103,63 +103,63 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="6dp"
                 android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/viewText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#777777"
+                    android:textColor="#6e6e73"
                     android:textSize="12sp"
-                    android:layout_marginRight="16dp" />
+                    android:layout_marginRight="20dp" />
 
                 <TextView
                     android:id="@+id/likeText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#777777"
+                    android:textColor="#6e6e73"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Action buttons row -->
+            <!-- Action buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="14dp"
                 android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnCopyLink"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:layout_marginRight="8dp"
+                    android:layout_marginRight="10dp"
                     android:text="复制链接"
                     android:textSize="13sp"
-                    android:textColor="#ffffff"
-                    android:background="#272727" />
+                    android:textColor="#aaa"
+                    android:background="@drawable/btn_secondary" />
 
                 <Button
                     android:id="@+id/btnShowDesc"
                     android:layout_width="0dp"
-                    android:layout_height="38dp"
+                    android:layout_height="40dp"
                     android:layout_weight="1"
                     android:text="查看简介"
                     android:textSize="13sp"
-                    android:textColor="#ffffff"
-                    android:background="#272727" />
+                    android:textColor="#aaa"
+                    android:background="@drawable/btn_secondary" />
             </LinearLayout>
 
-            <!-- Description (expandable) -->
+            <!-- Description -->
             <TextView
                 android:id="@+id/descText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:padding="12dp"
-                android:background="#1a1a1a"
-                android:textColor="#cccccc"
+                android:layout_marginTop="10dp"
+                android:padding="16dp"
+                android:background="@drawable/glass_card"
+                android:textColor="#bbb"
                 android:textSize="13sp"
                 android:visibility="gone"
                 android:maxLines="10"
@@ -168,12 +168,12 @@
             <!-- Divider -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
-                android:background="#222222" />
+                android:layout_height="0.5dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="12dp"
+                android:background="#18ffffff" />
 
-            <!-- Quality section header -->
+            <!-- Quality header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,7 +192,7 @@
                     android:id="@+id/qualityCountText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="#888888"
+                    android:textColor="#6e6e73"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -205,40 +205,39 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- Quality list -->
+            <!-- Video qualities -->
             <LinearLayout
                 android:id="@+id/videoQualityList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
-            <!-- Audio section header -->
+            <!-- Audio header -->
             <TextView
                 android:id="@+id/audioSectionLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="22dp"
                 android:text="仅下载音频"
                 android:textColor="#ffffff"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:visibility="gone" />
 
-            <!-- Audio quality list -->
             <LinearLayout
                 android:id="@+id/audioQualityList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
-            <!-- Subtitle section -->
+            <!-- Subtitle header -->
             <TextView
                 android:id="@+id/subtitleSectionLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="22dp"
                 android:text="字幕下载"
                 android:textColor="#ffffff"
                 android:textSize="15sp"
@@ -249,12 +248,12 @@
                 android:id="@+id/subtitleList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
             <View
                 android:layout_width="match_parent"
-                android:layout_height="40dp" />
+                android:layout_height="48dp" />
 
         </LinearLayout>
     </ScrollView>

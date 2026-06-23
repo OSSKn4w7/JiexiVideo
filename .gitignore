@@ -13,6 +13,10 @@ gradle-app.setting
 # Local machine config
 local.properties
 
+# Local tooling
+.opencode/
+.impeccable/
+
 # IDE files
 *.iml
 .idea/

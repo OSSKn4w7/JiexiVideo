@@ -190,11 +190,12 @@ public class BilibiliActivity extends Activity {
             mUserVipText.setText("大会员");
             mUserVipText.setTextColor(0xffffffff);
             mUserVipText.setBackgroundDrawable(
-                    getResources().getDrawable(R.drawable.btn_pink_rounded));
+                    getResources().getDrawable(R.drawable.vip_badge_bg));
         } else {
             mUserVipText.setVisibility(View.VISIBLE);
             mUserVipText.setText("普通用户");
-            mUserVipText.setTextColor(0xff888888);
+            mUserVipText.setTextColor(0xff98989d);
+            mUserVipText.setBackgroundDrawable(null);
         }
         mUserMidText.setText("UID: " + status.mid);
         mUserCookieInfo.setText("登录有效");

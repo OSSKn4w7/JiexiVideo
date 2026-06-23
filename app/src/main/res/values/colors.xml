@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#0f0f0f</color>
-    <color name="surface">#1a1a1a</color>
+    <color name="background">#08080c</color>
+    <color name="surface">#14141a</color>
     <color name="primary">#fb7299</color>
     <color name="text_primary">#ffffff</color>
-    <color name="text_secondary">#aaaaaa</color>
+    <color name="text_secondary">#98989d</color>
+    <color name="text_muted">#6e6e73</color>
 </resources>
