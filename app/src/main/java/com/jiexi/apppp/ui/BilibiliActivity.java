@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -142,6 +143,15 @@ public class BilibiliActivity extends Activity {
                 mAvatarImage.setImageResource(R.drawable.ic_launcher);
                 Toast.makeText(BilibiliActivity.this, "已退出登录", Toast.LENGTH_SHORT).show();
                 Logger.i("Bili", "用户退出登录");
+            }
+        });
+
+        // About button
+        Button btnAbout = (Button) findViewById(R.id.btnAbout);
+        btnAbout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAboutDialog();
             }
         });
 
@@ -431,5 +441,63 @@ public class BilibiliActivity extends Activity {
         builder.setNeutralButton("关闭", null);
         builder.show();
         Logger.i("Bili", "打开日志查看器");
+    }
+
+    private void showAboutDialog() {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setGravity(android.view.Gravity.CENTER);
+        layout.setPadding(40, 32, 40, 24);
+
+        // GitHub icon (use text emoji as placeholder)
+        TextView iconView = new TextView(this);
+        iconView.setText("⌥");
+        iconView.setTextSize(40);
+        iconView.setTextColor(0xffffffff);
+        iconView.setGravity(android.view.Gravity.CENTER);
+        layout.addView(iconView);
+
+        // Project name
+        TextView projectView = new TextView(this);
+        projectView.setText("JiexiVideo");
+        projectView.setTextSize(18);
+        projectView.setTextColor(0xffffffff);
+        projectView.setTextStyle(android.graphics.Typeface.BOLD);
+        projectView.setGravity(android.view.Gravity.CENTER);
+        projectView.setPadding(0, 16, 0, 8);
+        layout.addView(projectView);
+
+        // Version
+        TextView versionView = new TextView(this);
+        versionView.setText("v10.0");
+        versionView.setTextSize(13);
+        versionView.setTextColor(0xff98989d);
+        versionView.setGravity(android.view.Gravity.CENTER);
+        versionView.setPadding(0, 0, 0, 16);
+        layout.addView(versionView);
+
+        // Author - blue clickable
+        TextView authorView = new TextView(this);
+        authorView.setText("OSSKn4w7");
+        authorView.setTextSize(15);
+        authorView.setTextColor(0xff58a6ff);
+        authorView.setGravity(android.view.Gravity.CENTER);
+        authorView.setPadding(16, 10, 16, 10);
+        authorView.setClickable(true);
+        authorView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW,
+                        Uri.parse("https://github.com/OSSKn4w7"));
+                startActivity(browserIntent);
+            }
+        });
+        layout.addView(authorView);
+
+        android.app.AlertDialog.Builder builder =
+                new android.app.AlertDialog.Builder(BilibiliActivity.this);
+        builder.setView(layout);
+        builder.setPositiveButton("关闭", null);
+        builder.show();
     }
 }

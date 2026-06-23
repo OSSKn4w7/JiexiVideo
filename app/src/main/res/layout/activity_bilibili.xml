@@ -52,7 +52,6 @@
             android:id="@+id/btnTheme"
             android:layout_width="52dp"
             android:layout_height="36dp"
-            android:layout_marginRight="8dp"
             android:text="☀"
             android:textSize="16sp"
             android:textColor="#aaa"
@@ -60,10 +59,11 @@
             android:minWidth="0dp" />
 
         <Button
-            android:id="@+id/btnDownloads"
+            android:id="@+id/btnAbout"
             android:layout_width="52dp"
             android:layout_height="36dp"
-            android:text="↓"
+            android:layout_marginLeft="8dp"
+            android:text="ℹ"
             android:textSize="16sp"
             android:textColor="#aaa"
             android:background="@drawable/btn_secondary"
@@ -97,6 +97,17 @@
         android:textSize="16sp"
         android:textStyle="bold"
         android:background="@drawable/btn_primary_gradient" />
+
+    <!-- Download list button -->
+    <Button
+        android:id="@+id/btnDownloads"
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:layout_marginTop="10dp"
+        android:text="下载列表"
+        android:textColor="#98989d"
+        android:textSize="14sp"
+        android:background="@drawable/btn_secondary" />
 
     <!-- Loading indicator -->
     <LinearLayout
