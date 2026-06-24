@@ -1,16 +1,16 @@
 package com.jiexi.apppp.ui;
 
 import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -25,6 +25,7 @@ import com.jiexi.apppp.api.VideoInfo;
 import com.jiexi.apppp.login.CookieManager;
 import com.jiexi.apppp.util.LinkExtractor;
 import com.jiexi.apppp.util.Logger;
+import com.jiexi.apppp.util.ThemeHelper;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -58,13 +59,6 @@ public class BilibiliActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
         mIsLightTheme = prefs.getBoolean("light", false);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-            if (um != null) {
-                um.setNightMode(mIsLightTheme ?
-                        UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
-            }
-        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bilibili);
 
@@ -72,6 +66,14 @@ public class BilibiliActivity extends Activity {
         initViews();
         checkLoginStatus();
         initWbi();
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            ThemeHelper.applyTheme(findViewById(android.R.id.content), mIsLightTheme);
+        }
     }
 
     @Override
@@ -113,17 +115,7 @@ public class BilibiliActivity extends Activity {
         btnTheme.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
-                boolean nextLight = !mIsLightTheme;
-                prefs.edit().putBoolean("light", nextLight).apply();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-                    if (um != null) {
-                        um.setNightMode(nextLight ?
-                                UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
-                    }
-                }
-                recreate();
+                showThemeSwitching();
             }
         });
 
@@ -517,5 +509,43 @@ public class BilibiliActivity extends Activity {
         builder.setView(layout);
         builder.setPositiveButton("关闭", null);
         builder.show();
+    }
+
+    private void showThemeSwitching() {
+        // Fullscreen overlay to prevent interaction during switch
+        final LinearLayout overlay = new LinearLayout(this);
+        overlay.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT));
+        overlay.setBackgroundColor(Color.argb(180, 0, 0, 0));
+        overlay.setGravity(android.view.Gravity.CENTER);
+        overlay.setOrientation(LinearLayout.VERTICAL);
+        overlay.setClickable(true);
+
+        android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
+        spinner.setIndeterminate(true);
+        overlay.addView(spinner);
+
+        TextView label = new TextView(this);
+        label.setText("切换中...");
+        label.setTextColor(0xffffffff);
+        label.setTextSize(16);
+        label.setPadding(0, 20, 0, 0);
+        label.setGravity(android.view.Gravity.CENTER);
+        overlay.addView(label);
+
+        ((ViewGroup) getWindow().getDecorView()).addView(overlay);
+
+        final SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
+        final boolean nextLight = !mIsLightTheme;
+        prefs.edit().putBoolean("light", nextLight).apply();
+
+        new android.os.Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ((ViewGroup) getWindow().getDecorView()).removeView(overlay);
+                recreate();
+            }
+        }, 800);
     }
 }
