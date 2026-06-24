@@ -16,6 +16,16 @@
         android:maxLines="2"
         android:ellipsize="end" />
 
+    <TextView
+        android:id="@+id/downloadPathText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:textColor="#50505a"
+        android:textSize="10sp"
+        android:maxLines="2"
+        android:ellipsize="middle" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

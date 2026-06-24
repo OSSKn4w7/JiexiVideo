@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#08080c"
+    android:background="@color/background"
     android:padding="18dp">
 
     <!-- Top bar — glass card -->
@@ -21,6 +21,8 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:cropToPadding="true"
             android:src="@drawable/ic_launcher" />
 
         <LinearLayout

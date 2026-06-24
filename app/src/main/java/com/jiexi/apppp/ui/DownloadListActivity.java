@@ -188,6 +188,7 @@ public class DownloadListActivity extends Activity {
                 convertView = getLayoutInflater().inflate(R.layout.item_download, null);
                 holder = new ViewHolder();
                 holder.titleText = (TextView) convertView.findViewById(R.id.downloadTitleText);
+                holder.pathText = (TextView) convertView.findViewById(R.id.downloadPathText);
                 holder.statusText = (TextView) convertView.findViewById(R.id.downloadStatusText);
                 holder.progress = (ProgressBar) convertView.findViewById(R.id.downloadProgress);
                 holder.actionBtn = (Button) convertView.findViewById(R.id.downloadActionBtn);
@@ -199,6 +200,7 @@ public class DownloadListActivity extends Activity {
             final DownloadItem item = getItem(position);
 
             holder.titleText.setText(item.title + " (" + item.qualityName + ")");
+            holder.pathText.setText(item.filePath);
 
             switch (item.status) {
                 case DownloadItem.STATUS_DOWNLOADING:
@@ -280,6 +282,7 @@ public class DownloadListActivity extends Activity {
 
     static class ViewHolder {
         TextView titleText;
+        TextView pathText;
         TextView statusText;
         ProgressBar progress;
         Button actionBtn;

@@ -372,18 +372,19 @@ public class DownloadService extends Service {
             // Merge
             boolean merged = MediaMerger.merge(videoPath, audioPath, mergedPath);
             if (merged) {
-                // Replace video-only file with merged audio+video file
                 File videoFile = new File(videoPath);
                 if (videoFile.exists()) videoFile.delete();
-                File mergedFile = new File(mergedPath);
-                mergedFile.renameTo(videoFile);
+                new File(mergedPath).renameTo(videoFile);
                 Logger.i("Download", "合并成功: " + videoFile.getAbsolutePath());
+                try { new File(audioPath).delete(); } catch (Exception ignored) {}
+                try { new File(mergedPath).delete(); } catch (Exception ignored) {}
             } else {
-                Logger.e("Download", "合并失败: " + item.title);
+                // Keep both files, rename audio for clarity
+                Logger.e("Download", "合并失败,保留分离文件: " + item.title);
+                File audioRename = new File(audioPath.replace("_audio.m4a", "_仅音频.m4a"));
+                try { new File(audioPath).renameTo(audioRename); } catch (Exception ignored) {}
+                try { new File(mergedPath).delete(); } catch (Exception ignored) {}
             }
-            // Clean up audio temp
-            try { new File(audioPath).delete(); } catch (Exception ignored) {}
-            try { new File(mergedPath).delete(); } catch (Exception ignored) {}
 
         } catch (Exception e) {
             Logger.e("Download", "音频下载/合并异常: " + item.title, e);

@@ -1,11 +1,13 @@
 package com.jiexi.apppp.ui;
 
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -56,8 +58,12 @@ public class BilibiliActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
         mIsLightTheme = prefs.getBoolean("light", false);
-        if (mIsLightTheme) {
-            setTheme(R.style.AppTheme_Light);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+            if (um != null) {
+                um.setNightMode(mIsLightTheme ?
+                        UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
+            }
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bilibili);
@@ -108,7 +114,15 @@ public class BilibiliActivity extends Activity {
             @Override
             public void onClick(View v) {
                 SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
-                prefs.edit().putBoolean("light", !mIsLightTheme).apply();
+                boolean nextLight = !mIsLightTheme;
+                prefs.edit().putBoolean("light", nextLight).apply();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+                    if (um != null) {
+                        um.setNightMode(nextLight ?
+                                UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
+                    }
+                }
                 recreate();
             }
         });
@@ -277,10 +291,12 @@ public class BilibiliActivity extends Activity {
                     conn.setConnectTimeout(10000);
                     conn.setReadTimeout(10000);
                     InputStream is = conn.getInputStream();
-                    final Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    final Bitmap raw = BitmapFactory.decodeStream(is);
                     is.close();
                     conn.disconnect();
-                    if (bitmap != null) {
+                    if (raw != null) {
+                        final Bitmap bitmap = Bitmap.createScaledBitmap(raw, 160, 160, true);
+                        if (bitmap != raw) raw.recycle();
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -303,10 +319,12 @@ public class BilibiliActivity extends Activity {
                     conn.setConnectTimeout(10000);
                     conn.setReadTimeout(10000);
                     InputStream is = conn.getInputStream();
-                    final Bitmap bitmap = BitmapFactory.decodeStream(is);
+                    final Bitmap raw = BitmapFactory.decodeStream(is);
                     is.close();
                     conn.disconnect();
-                    if (bitmap != null) {
+                    if (raw != null) {
+                        final Bitmap bitmap = Bitmap.createScaledBitmap(raw, 80, 80, true);
+                        if (bitmap != raw) raw.recycle();
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {

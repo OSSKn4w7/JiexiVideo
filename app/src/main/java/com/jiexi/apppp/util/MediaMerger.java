@@ -41,6 +41,15 @@ public class MediaMerger {
             MediaFormat videoFormat = videoExtractor.getTrackFormat(videoTrack);
             MediaFormat audioFormat = audioExtractor.getTrackFormat(audioTrack);
 
+            // Check codec compatibility — MediaMuxer only reliably supports AVC+AAC
+            String videoMime = videoFormat.getString(MediaFormat.KEY_MIME);
+            String audioMime = audioFormat.getString(MediaFormat.KEY_MIME);
+            Logger.i("Merger", "视频编码=" + videoMime + " 音频编码=" + audioMime);
+            if (!"video/avc".equals(videoMime) && !"video/mp4".equals(videoMime)) {
+                Logger.i("Merger", "跳过合并不支持的视频编码: " + videoMime);
+                return false;
+            }
+
             muxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             int videoMuxIndex = muxer.addTrack(videoFormat);
             int audioMuxIndex = muxer.addTrack(audioFormat);

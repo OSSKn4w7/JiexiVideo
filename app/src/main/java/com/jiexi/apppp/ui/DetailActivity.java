@@ -1,10 +1,12 @@
 package com.jiexi.apppp.ui;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
@@ -12,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -548,11 +551,89 @@ public class DetailActivity extends Activity {
         mDownloadService.addTaskWithFallback(mVideoInfo.title, opt.url,
                 opt.qualityName, ext, mVideoInfo.bvid, opt.fallbackUrls,
                 bestAudioUrl, VideoInfo.PLATFORM_BILIBILI);
-        Toast.makeText(this, "已添加下载: " + opt.qualityName
-                + (opt.fallbackUrls.size() > 0 ?
-                " (" + (opt.fallbackUrls.size() + 1) + "路备选)" : "")
-                + (bestAudioUrl != null ? " +音频" : "")
-                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
+        showDownloadDialog(opt.qualityName, fullPath);
+    }
+
+    private void showDownloadDialog(String quality, final String path) {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("添加到下载");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(32, 24, 32, 16);
+
+        TextView nameView = new TextView(this);
+        nameView.setText(quality);
+        nameView.setTextSize(16);
+        nameView.setTextColor(0xffffffff);
+        nameView.setPadding(0, 0, 0, 12);
+        layout.addView(nameView);
+
+        final ProgressBar progressBar = new ProgressBar(this, null,
+                android.R.attr.progressBarStyleHorizontal);
+        progressBar.setMax(100);
+        progressBar.setProgress(0);
+        progressBar.setIndeterminate(true);
+        layout.addView(progressBar);
+
+        final TextView statusView = new TextView(this);
+        statusView.setText("准备下载...");
+        statusView.setTextSize(12);
+        statusView.setTextColor(0xff98989d);
+        statusView.setPadding(0, 10, 0, 8);
+        layout.addView(statusView);
+
+        TextView pathView = new TextView(this);
+        pathView.setText(path);
+        pathView.setTextSize(10);
+        pathView.setTextColor(0xff6e6e73);
+        pathView.setSingleLine(false);
+        pathView.setMaxLines(3);
+        layout.addView(pathView);
+
+        builder.setView(layout);
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+
+        // Poll progress
+        final Handler handler = new Handler();
+        final Runnable poller = new Runnable() {
+            @Override
+            public void run() {
+                if (mDownloadService == null) return;
+                com.jiexi.apppp.download.DownloadItem item = null;
+                for (com.jiexi.apppp.download.DownloadItem t :
+                        mDownloadService.getAllTasks()) {
+                    if (path.endsWith(t.fileName)) { item = t; break; }
+                }
+                if (item != null) {
+                    progressBar.setIndeterminate(false);
+                    progressBar.setProgress(item.progress);
+                    if (item.totalSize > 0) {
+                        statusView.setText(item.progress + "%  "
+                                + com.jiexi.apppp.util.FileUtil.formatSize(item.downloadedSize)
+                                + "/" + com.jiexi.apppp.util.FileUtil.formatSize(item.totalSize));
+                    } else {
+                        statusView.setText(item.progress + "%  下载中...");
+                    }
+                    if (item.status == com.jiexi.apppp.download.DownloadItem.STATUS_COMPLETED) {
+                        statusView.setText("下载完成");
+                        return;
+                    }
+                    if (item.status == com.jiexi.apppp.download.DownloadItem.STATUS_FAILED) {
+                        statusView.setText("下载失败");
+                        return;
+                    }
+                    handler.postDelayed(this, 500);
+                }
+            }
+        };
+        handler.postDelayed(poller, 300);
     }
 
     private void startAudioDownload(QualityOption opt) {
@@ -568,8 +649,7 @@ public class DetailActivity extends Activity {
 
         mDownloadService.addTask(mVideoInfo.title, opt.url,
                 "仅音频_" + opt.qualityName, ".m4a", mVideoInfo.bvid);
-        Toast.makeText(this, "已添加音频: " + opt.qualityName
-                + "\n路径: " + fullPath, Toast.LENGTH_LONG).show();
+        showDownloadDialog("仅音频 " + opt.qualityName, fullPath);
     }
 
     private void startSubtitleDownload(SubtitleOption sub) {
