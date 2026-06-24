@@ -1,18 +1,13 @@
 package com.jiexi.apppp.ui;
 
 import android.app.Activity;
-import android.app.UiModeManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -54,12 +49,9 @@ public class BilibiliActivity extends Activity {
     private CookieManager mCookieManager;
     private boolean mIsLoggedIn;
     private boolean mIsVip;
-    private boolean mIsLightTheme;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
-        mIsLightTheme = prefs.getBoolean("light", false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bilibili);
 
@@ -101,16 +93,6 @@ public class BilibiliActivity extends Activity {
         mUserCookieInfo = (TextView) findViewById(R.id.userCookieInfo);
         mBtnLogout = (Button) findViewById(R.id.btnLogout);
         mHintCard = (LinearLayout) findViewById(R.id.hintCard);
-
-        // Theme toggle
-        Button btnTheme = (Button) findViewById(R.id.btnTheme);
-        btnTheme.setText(mIsLightTheme ? "☾" : "☀");
-        btnTheme.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showThemeSwitching();
-            }
-        });
 
         mBtnParse.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -502,51 +484,5 @@ public class BilibiliActivity extends Activity {
         builder.setView(layout);
         builder.setPositiveButton("关闭", null);
         builder.show();
-    }
-
-    private void showThemeSwitching() {
-        final LinearLayout overlay = new LinearLayout(this);
-        overlay.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(Color.argb(220, 0, 0, 0));
-        overlay.setGravity(android.view.Gravity.CENTER);
-        overlay.setOrientation(LinearLayout.VERTICAL);
-        overlay.setClickable(true);
-
-        android.widget.ProgressBar spinner = new android.widget.ProgressBar(this);
-        spinner.setIndeterminate(true);
-        overlay.addView(spinner);
-
-        TextView label = new TextView(this);
-        label.setText("切换主题中...");
-        label.setTextColor(0xffffffff);
-        label.setTextSize(16);
-        label.setPadding(0, 24, 0, 0);
-        label.setGravity(android.view.Gravity.CENTER);
-        overlay.addView(label);
-
-        ((ViewGroup) getWindow().getDecorView()).addView(overlay);
-
-        final SharedPreferences prefs = getSharedPreferences("theme", MODE_PRIVATE);
-        final boolean nextLight = !mIsLightTheme;
-        prefs.edit().putBoolean("light", nextLight).apply();
-
-        // Set system night mode
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
-            if (um != null) {
-                um.setNightMode(nextLight ?
-                        UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
-            }
-        }
-
-        new android.os.Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                ((ViewGroup) getWindow().getDecorView()).removeView(overlay);
-                recreate();
-            }
-        }, 900);
     }
 }

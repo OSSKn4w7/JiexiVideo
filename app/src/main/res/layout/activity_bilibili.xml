@@ -51,9 +51,6 @@
                 android:visibility="gone" />
         </LinearLayout>
 
-        <Button android:id="@+id/btnTheme" android:layout_width="52dp" android:layout_height="36dp"
-            android:text="☀" android:textSize="16sp" android:textColor="@color/btn_secondary_text"
-            android:background="@drawable/btn_secondary" android:minWidth="0dp" />
         <Button android:id="@+id/btnAbout" android:layout_width="52dp" android:layout_height="36dp"
             android:layout_marginLeft="8dp" android:text="ℹ" android:textSize="16sp"
             android:textColor="@color/btn_secondary_text" android:background="@drawable/btn_secondary"
