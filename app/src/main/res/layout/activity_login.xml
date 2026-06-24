@@ -1,89 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#0f0f0f">
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="@color/background">
 
-    <!-- Top bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp">
-
-        <Button
-            android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="36dp"
-            android:text="←"
-            android:textSize="18sp"
-            android:textColor="#ffffff"
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp"
+        android:gravity="center_vertical" android:paddingHorizontal="16dp">
+        <Button android:id="@+id/btnBack" android:layout_width="48dp"
+            android:layout_height="36dp" android:text="←" android:textSize="18sp"
+            android:textColor="@color/btn_secondary_text"
             android:background="#00000000" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="登录B站"
-            android:textColor="#ffffff"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center" />
-
-        <View
-            android:layout_width="48dp"
-            android:layout_height="1dp" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="登录B站" android:textColor="@color/text_primary"
+            android:textSize="16sp" android:textStyle="bold" android:gravity="center" />
+        <View android:layout_width="48dp" android:layout_height="1dp" />
     </LinearLayout>
 
-    <!-- WebView for Bilibili login -->
-    <WebView
-        android:id="@+id/loginWebView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <WebView android:id="@+id/loginWebView" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" />
 
-    <!-- Cookie import section -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="#1a1a1a">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="导入 Cookie"
-            android:textColor="#ffffff"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <EditText
-            android:id="@+id/cookieInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="80dp"
-            android:layout_marginTop="8dp"
-            android:hint="粘贴 B站 Cookie 字符串..."
-            android:textColorHint="#555555"
-            android:textColor="#ffffff"
-            android:textSize="12sp"
-            android:background="#222222"
-            android:padding="10dp"
-            android:gravity="top"
-            android:inputType="textMultiLine"
-            android:maxLines="4" />
-
-        <Button
-            android:id="@+id/btnImportCookie"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:layout_marginTop="8dp"
-            android:text="导入 Cookie"
-            android:textSize="14sp"
-            android:textColor="#ffffff"
-            android:background="#fb7299" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp" android:background="@color/surface">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="导入 Cookie" android:textColor="@color/text_primary"
+            android:textSize="14sp" android:textStyle="bold" />
+        <EditText android:id="@+id/cookieInput" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:minHeight="80dp"
+            android:layout_marginTop="8dp" android:hint="粘贴 B站 Cookie 字符串..."
+            android:textColorHint="@color/text_hint" android:textColor="@color/text_primary"
+            android:textSize="12sp" android:background="@color/input_bg"
+            android:padding="10dp" android:gravity="top"
+            android:inputType="textMultiLine" android:maxLines="4" />
+        <Button android:id="@+id/btnImportCookie" android:layout_width="match_parent"
+            android:layout_height="40dp" android:layout_marginTop="8dp"
+            android:text="导入 Cookie" android:textSize="14sp" android:textColor="#ffffff"
+            android:background="@color/primary" />
     </LinearLayout>
-
 </LinearLayout>

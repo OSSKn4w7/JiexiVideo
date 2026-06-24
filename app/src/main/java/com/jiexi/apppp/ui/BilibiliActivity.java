@@ -1,14 +1,15 @@
 package com.jiexi.apppp.ui;
 
 import android.app.Activity;
+import android.app.UiModeManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -25,7 +26,6 @@ import com.jiexi.apppp.api.VideoInfo;
 import com.jiexi.apppp.login.CookieManager;
 import com.jiexi.apppp.util.LinkExtractor;
 import com.jiexi.apppp.util.Logger;
-import com.jiexi.apppp.util.ThemeHelper;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -66,14 +66,6 @@ public class BilibiliActivity extends Activity {
         initViews();
         checkLoginStatus();
         initWbi();
-    }
-
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            ThemeHelper.applyTheme(findViewById(android.R.id.content), mIsLightTheme);
-        }
     }
 
     @Override
@@ -512,12 +504,11 @@ public class BilibiliActivity extends Activity {
     }
 
     private void showThemeSwitching() {
-        // Fullscreen overlay to prevent interaction during switch
         final LinearLayout overlay = new LinearLayout(this);
         overlay.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT));
-        overlay.setBackgroundColor(Color.argb(180, 0, 0, 0));
+        overlay.setBackgroundColor(Color.argb(220, 0, 0, 0));
         overlay.setGravity(android.view.Gravity.CENTER);
         overlay.setOrientation(LinearLayout.VERTICAL);
         overlay.setClickable(true);
@@ -527,10 +518,10 @@ public class BilibiliActivity extends Activity {
         overlay.addView(spinner);
 
         TextView label = new TextView(this);
-        label.setText("切换中...");
+        label.setText("切换主题中...");
         label.setTextColor(0xffffffff);
         label.setTextSize(16);
-        label.setPadding(0, 20, 0, 0);
+        label.setPadding(0, 24, 0, 0);
         label.setGravity(android.view.Gravity.CENTER);
         overlay.addView(label);
 
@@ -540,12 +531,21 @@ public class BilibiliActivity extends Activity {
         final boolean nextLight = !mIsLightTheme;
         prefs.edit().putBoolean("light", nextLight).apply();
 
+        // Set system night mode
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            UiModeManager um = (UiModeManager) getSystemService(UI_MODE_SERVICE);
+            if (um != null) {
+                um.setNightMode(nextLight ?
+                        UiModeManager.MODE_NIGHT_NO : UiModeManager.MODE_NIGHT_YES);
+            }
+        }
+
         new android.os.Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 ((ViewGroup) getWindow().getDecorView()).removeView(overlay);
                 recreate();
             }
-        }, 800);
+        }, 900);
     }
 }

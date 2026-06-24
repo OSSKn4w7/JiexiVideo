@@ -5,257 +5,118 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Fixed preview -->
-    <FrameLayout
-        android:id="@+id/previewFrame"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#0c0c14">
-
-        <ImageView
-            android:id="@+id/thumbnailImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
-
-        <SurfaceView
-            android:id="@+id/previewVideo"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/playOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:clickable="true"
-            android:background="#33000000">
-
-            <Button
-                android:id="@+id/btnPlay"
-                android:layout_width="68dp"
-                android:layout_height="68dp"
-                android:text="▶"
-                android:textSize="26sp"
-                android:textColor="#ffffff"
-                android:background="@drawable/glass_card" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="点击预览 720P"
-                android:textColor="#98989d"
-                android:textSize="12sp" />
+    <FrameLayout android:id="@+id/previewFrame" android:layout_width="match_parent"
+        android:layout_height="200dp" android:background="#0c0c14">
+        <ImageView android:id="@+id/thumbnailImage" android:layout_width="match_parent"
+            android:layout_height="match_parent" android:scaleType="centerCrop" />
+        <SurfaceView android:id="@+id/previewVideo" android:layout_width="match_parent"
+            android:layout_height="match_parent" android:visibility="gone" />
+        <LinearLayout android:id="@+id/playOverlay" android:layout_width="match_parent"
+            android:layout_height="match_parent" android:gravity="center"
+            android:orientation="vertical" android:clickable="true"
+            android:background="@color/overlay">
+            <Button android:id="@+id/btnPlay" android:layout_width="68dp"
+                android:layout_height="68dp" android:text="▶" android:textSize="26sp"
+                android:textColor="#ffffff" android:background="@drawable/glass_card" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginTop="8dp" android:text="点击预览 720P"
+                android:textColor="@color/text_secondary" android:textSize="12sp" />
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Scrollable content -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp"
         android:layout_weight="1">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="18dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="18dp">
-
-            <!-- Title -->
-            <TextView
-                android:id="@+id/titleText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="#ffffff"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:maxLines="3"
+            <TextView android:id="@+id/titleText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:textColor="@color/text_primary"
+                android:textSize="18sp" android:textStyle="bold" android:maxLines="3"
                 android:ellipsize="end" />
 
-            <!-- Author + duration row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" android:orientation="horizontal"
                 android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/authorText"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textColor="#98989d"
-                    android:textSize="13sp" />
-
-                <TextView
-                    android:id="@+id/durationText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#6e6e73"
+                <TextView android:id="@+id/authorText" android:layout_width="0dp"
+                    android:layout_height="wrap_content" android:layout_weight="1"
+                    android:textColor="@color/text_secondary" android:textSize="13sp" />
+                <TextView android:id="@+id/durationText" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textColor="@color/text_muted"
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Stats -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/viewText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#6e6e73"
-                    android:textSize="12sp"
-                    android:layout_marginRight="20dp" />
-
-                <TextView
-                    android:id="@+id/likeText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#6e6e73"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="6dp" android:orientation="horizontal">
+                <TextView android:id="@+id/viewText" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textColor="@color/text_muted"
+                    android:textSize="12sp" android:layout_marginRight="20dp" />
+                <TextView android:id="@+id/likeText" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textColor="@color/text_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- Action buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btnCopyLink"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginRight="10dp"
-                    android:text="复制链接"
-                    android:textSize="13sp"
-                    android:textColor="#aaa"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="14dp" android:orientation="horizontal">
+                <Button android:id="@+id/btnCopyLink" android:layout_width="0dp"
+                    android:layout_height="40dp" android:layout_weight="1"
+                    android:layout_marginRight="10dp" android:text="复制链接" android:textSize="13sp"
+                    android:textColor="@color/btn_secondary_text"
                     android:background="@drawable/btn_secondary" />
-
-                <Button
-                    android:id="@+id/btnShowDesc"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:text="查看简介"
-                    android:textSize="13sp"
-                    android:textColor="#aaa"
+                <Button android:id="@+id/btnShowDesc" android:layout_width="0dp"
+                    android:layout_height="40dp" android:layout_weight="1" android:text="查看简介"
+                    android:textSize="13sp" android:textColor="@color/btn_secondary_text"
                     android:background="@drawable/btn_secondary" />
             </LinearLayout>
 
-            <!-- Description -->
-            <TextView
-                android:id="@+id/descText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:padding="16dp"
-                android:background="@drawable/glass_card"
-                android:textColor="#bbb"
-                android:textSize="13sp"
-                android:visibility="gone"
-                android:maxLines="10"
-                android:ellipsize="end" />
+            <TextView android:id="@+id/descText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
+                android:padding="16dp" android:background="@drawable/glass_card"
+                android:textColor="@color/text_secondary" android:textSize="13sp"
+                android:visibility="gone" android:maxLines="10" android:ellipsize="end" />
 
-            <!-- Divider -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0.5dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="12dp"
-                android:background="#18ffffff" />
+            <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                android:layout_marginTop="20dp" android:layout_marginBottom="12dp"
+                android:background="@color/divider" />
 
-            <!-- Quality header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="清晰度选择"
-                    android:textColor="#ffffff"
-                    android:textSize="15sp"
+                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_weight="1" android:text="清晰度选择"
+                    android:textColor="@color/text_primary" android:textSize="15sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/qualityCountText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="#6e6e73"
+                <TextView android:id="@+id/qualityCountText" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" android:textColor="@color/text_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/loginHintText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#fb7299"
-                android:textSize="12sp"
+            <TextView android:id="@+id/loginHintText" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="4dp"
+                android:textColor="@color/primary" android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- Video qualities -->
-            <LinearLayout
-                android:id="@+id/videoQualityList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+            <LinearLayout android:id="@+id/videoQualityList" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
-            <!-- Audio header -->
-            <TextView
-                android:id="@+id/audioSectionLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="仅下载音频"
-                android:textColor="#ffffff"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
+            <TextView android:id="@+id/audioSectionLabel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="22dp"
+                android:text="仅下载音频" android:textColor="@color/text_primary"
+                android:textSize="15sp" android:textStyle="bold" android:visibility="gone" />
 
-            <LinearLayout
-                android:id="@+id/audioQualityList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+            <LinearLayout android:id="@+id/audioQualityList" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
-            <!-- Subtitle header -->
-            <TextView
-                android:id="@+id/subtitleSectionLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="22dp"
-                android:text="字幕下载"
-                android:textColor="#ffffff"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
+            <TextView android:id="@+id/subtitleSectionLabel" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="22dp"
+                android:text="字幕下载" android:textColor="@color/text_primary"
+                android:textSize="15sp" android:textStyle="bold" android:visibility="gone" />
 
-            <LinearLayout
-                android:id="@+id/subtitleList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+            <LinearLayout android:id="@+id/subtitleList" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:layout_marginTop="10dp"
                 android:orientation="vertical" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="48dp" />
-
+            <View android:layout_width="match_parent" android:layout_height="48dp" />
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

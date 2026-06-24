@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#f5f5f7</color>
-    <color name="surface">#ffffff</color>
+    <color name="background">#ffffff</color>
+    <color name="surface">#f5f5f7</color>
+    <color name="card">#ffffff</color>
     <color name="primary">#fb7299</color>
     <color name="text_primary">#1d1d1f</color>
     <color name="text_secondary">#86868b</color>
     <color name="text_muted">#aeaeb2</color>
-    <color name="input_bg">#e8e8ed</color>
-    <color name="card_bg_start">#ffffff</color>
-    <color name="card_bg_end">#f2f2f5</color>
+    <color name="text_hint">#aeaeb2</color>
+    <color name="text_error">#ff3b30</color>
+    <color name="text_link">#007aff</color>
+    <color name="text_dim">#aeaeb2</color>
+    <color name="input_bg">#f0f0f3</color>
+    <color name="btn_primary">#fb7299</color>
     <color name="btn_secondary_bg">#e8e8ed</color>
+    <color name="btn_secondary_text">#86868b</color>
+    <color name="divider">#d1d1d6</color>
+    <color name="overlay">#33000000</color>
+    <color name="ic_launcher_alpha">#1a000000</color>
 </resources>

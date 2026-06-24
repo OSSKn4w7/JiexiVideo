@@ -2,12 +2,20 @@
 <resources>
     <color name="background">#08080c</color>
     <color name="surface">#14141a</color>
+    <color name="card">#1a1a22</color>
     <color name="primary">#fb7299</color>
     <color name="text_primary">#ffffff</color>
     <color name="text_secondary">#98989d</color>
     <color name="text_muted">#6e6e73</color>
-    <color name="input_bg">#14ffffff</color>
-    <color name="card_bg_start">#33ffffff</color>
-    <color name="card_bg_end">#08ffffff</color>
-    <color name="btn_secondary_bg">#18ffffff</color>
+    <color name="text_hint">#48484d</color>
+    <color name="text_error">#ff4d4d</color>
+    <color name="text_link">#58a6ff</color>
+    <color name="text_dim">#3a3a40</color>
+    <color name="input_bg">#1e1e28</color>
+    <color name="btn_primary">#fb7299</color>
+    <color name="btn_secondary_bg">#22222e</color>
+    <color name="btn_secondary_text">#98989d</color>
+    <color name="divider">#18ffffff</color>
+    <color name="overlay">#33000000</color>
+    <color name="ic_launcher_alpha">#14ffffff</color>
 </resources>
